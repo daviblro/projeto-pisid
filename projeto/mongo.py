@@ -65,7 +65,7 @@ def send_mqtt_messages():
 
             if sounds:
                 batch_message = json.dumps({"messages": sounds})
-                client.publish("pisid_mazesound_99", batch_message, qos=2)
+                client.publish("pisid_mazesound_99", batch_message)
                 print(f"📤 Enviados {len(sounds)} sons em batch.")
                 save_sent_ids()  # Atualiza o ficheiro
 
