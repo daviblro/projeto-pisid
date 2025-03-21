@@ -62,10 +62,10 @@ def send_mqtt_messages():
                     x["_id"] = message_id  # Converte o próprio _id para string na mensagem
                     sounds.append(x)  # Adiciona a mensagem para envio
                     sent_ids.add(message_id)  # Regista como enviada
-
+            
             if sounds:
                 batch_message = json.dumps({"messages": sounds})
-                client.publish("pisid_mazesound_99", batch_message)
+                client.publish("pisid_mazesound_99", batch_message, qos=2)
                 print(f"📤 Enviados {len(sounds)} sons em batch.")
                 save_sent_ids()  # Atualiza o ficheiro
 
