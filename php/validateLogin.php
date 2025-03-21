@@ -1,5 +1,5 @@
 <?php 
-	$db = "pisid";
+	$db = "pisid_bd9";
 	$dbhost = "localhost";
 	$return["message"] = "";
 	$return["success"] = false;

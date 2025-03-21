@@ -1,5 +1,5 @@
 <?php
-$db = "pisid"; 
+$db = "pisid_bd9"; 
 $dbhost = "localhost"; 
 $username = $_POST["username"];
 $password = $_POST["password"];

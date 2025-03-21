@@ -1,5 +1,5 @@
 <?php
-	$db = "pisid"; //database name
+	$db = "pisid_bd9"; //database name
 	$username = $_POST["username"];
 	$password = $_POST["password"];
 	//$username = "root";
