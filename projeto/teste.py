@@ -1,6 +1,6 @@
 import paho.mqtt.client as mqtt
 
-#PC2 para meter no sql
+#teste de receção de mensangens de outro pc
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -14,7 +14,7 @@ def on_message(client, userdata, msg):
 client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
-client.connect('broker.mqtt-dashboard.com', 1883)
+client.connect('broker.emqx.io', 1883)
 client.subscribe("pisid_mazemov_99")
 client.subscribe("pisid_mazesound_99")
 

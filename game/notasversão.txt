@@ -1,0 +1,10 @@
+Alterações nesta nova versão:
+
+a) os anteriores dois executáveis (game e action) estão agora integrados num só (rebatizado mazerun)
+b) são enviadas as mensagens de colocação dos marsamis em jogo na sala inicial 
+c) por omissão não aparecem mensagens no ecrã, têm de ser pedidas  explicitamente (na outra versão era ao contrário)
+
+Broker
+Neste fim de semana o MQTT server gratuito broker.emqx.io esteve a funcionar muito bem (ao contrário do que está por omissão no executável). Existem vários gratuitos, podem usar o que bem entenderem.
+
+ 

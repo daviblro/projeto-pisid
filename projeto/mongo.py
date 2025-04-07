@@ -2,17 +2,17 @@ import paho.mqtt.client as mqtt
 from pymongo import MongoClient
 import json
 import threading
-import os
 import time
-
-#conecta o mongo e publish mqtt 
+from bson.objectid import ObjectId
+from datetime import datetime
 
 # Conectar ao MongoDB
 try:
     clientMongo = MongoClient("mongodb://localhost:27017/", serverSelectionTimeoutMS=5000)
     mydb = clientMongo["pisid_bd9"]
     mycol_movement = mydb["movement"]
-    mycol_sound = mydb["sound"]  
+    mycol_sound = mydb["sound"]
+    mycol_dados = mydb["dados_invalidos"]
     print("✅ Conexão sucedida MongoDB")
 except Exception as e:
     print("❌ Erro ao conectar ao MongoDB:", e)
@@ -20,60 +20,114 @@ except Exception as e:
 
 # MQTT Configuração
 client = mqtt.Client(callback_api_version=2)
-client.connect('broker.mqtt-dashboard.com', 1883)
-client.loop_start()  # Inicia a thread MQTT em background
+client.connect('broker.emqx.io', 1883)
+client.loop_start()
 
-# 📂 Carregar IDs já enviados de um ficheiro (evita reenvios após restart)
-sent_ids_file = "sent_ids.json"
-if os.path.exists(sent_ids_file):
-    with open(sent_ids_file, "r") as f:
-        sent_ids = set(json.load(f))  # Carrega os IDs enviados
-else:
-    sent_ids = set()
 
-def save_sent_ids():
-    """Guarda os IDs enviados no ficheiro."""    
-    with open(sent_ids_file, "w") as f:
-        json.dump(list(sent_ids), f)
+# Função para validar datas
+def is_valid_datetime(dt_str):
+    try:
+        # Tenta converter a string para datetime 
+        datetime.fromisoformat(dt_str)
+        return True
+    except ValueError:
+        return False
+
 
 def send_mqtt_messages():
     while True:
         try:
-            # 🔍 Enviar Movimentos em Batch
-            movements = []
-            for x in mycol_movement.find({}, {"_id": 1, "Player": 1, "Marsami": 1, "RoomOrigin": 1, "RoomDestiny": 1, "Status": 1}):  
-                message_id = str(x["_id"])  # Converte _id para string
-                if message_id not in sent_ids:
-                    x["_id"] = message_id  # Converte o próprio _id para string na mensagem
-                    movements.append(x)  # Adiciona a mensagem para envio
-                    sent_ids.add(message_id)  # Regista como enviada
+            # 🔍 Enviar movimentos não enviados (sent != True)
+            movements_cursor = mycol_movement.find({"sent": {"$ne": True}}, 
+                                                   {"_id": 1, "Player": 1, "Marsami": 1, "RoomOrigin": 1, "RoomDestiny": 1, "Status": 1})
+            movements = list(movements_cursor)
+            for m in movements:
+                m["_id"] = str(m["_id"])  # Converte o ID para string (para envio)
 
-            if movements:
-                batch_message = json.dumps({"messages": movements})
-                client.publish("pisid_mazemov_99", batch_message, qos=2)
+                if m["RoomOrigin"] == 0:
+                    continue  # Ignora movimentos com RoomOrigin = 0
+
+                # Buscar a configuração da sala de origem
+                dados_cursor = mydb["game_configs"].find_one({
+                    "roomsConfig": {
+                        "$elemMatch": {
+                            "roomId": m["RoomOrigin"]
+                        }
+                    }
+                })
+
+                if dados_cursor is None:
+                    print(f"⚠️ Configuração não encontrada para RoomOrigin={m['RoomOrigin']}")
+                    mycol_dados.insert_one({
+                        "type": "missing_config",
+                        "document": m,
+                        "reason": "RoomOrigin not found in config"
+                    })
+                    continue  # Salta este movimento
+
+                connected = next(
+                    (r["connectedTo"] for r in dados_cursor["roomsConfig"] if r["roomId"] == m["RoomOrigin"]),
+                    []
+                )
+                
+                if m["RoomDestiny"] not in connected:
+                    print("Dado inválido - destino não está ligado à origem.")
+                    mycol_dados.insert_one({
+                        "type": "invalid_connection",
+                        "document": m,
+                        "reason": "RoomDestiny not connected to RoomOrigin"
+                    })
+                    continue  # Também salta este movimento
+
+            valid_movements = [m for m in movements if "sent" not in m or not m["sent"]]
+            if valid_movements:
+                batch_message = json.dumps({"messages": valid_movements})
+                client.publish("pisid_mazemov_99", batch_message)
                 print(f"📤 Enviados {len(movements)} movimentos em batch.")
-                save_sent_ids()  # Atualiza o ficheiro
 
-            # 🔊 Enviar Sons em Batch
-            sounds = []
-            for x in mycol_sound.find({}, {"_id": 1, "Player": 1, "Hour": 1, "Sound": 1}):  
-                message_id = str(x["_id"])  # Converte _id para string
-                if message_id not in sent_ids:
-                    x["_id"] = message_id  # Converte o próprio _id para string na mensagem
-                    sounds.append(x)  # Adiciona a mensagem para envio
-                    sent_ids.add(message_id)  # Regista como enviada
-            
+                # Atualiza os documentos como enviados
+                ids = [m["_id"] for m in movements]
+                mycol_movement.update_many(
+                    {"_id": {"$in": [ObjectId(id) for id in ids]}},
+                    {"$set": {"sent": True}}
+                )
+
+            # 🔊 Enviar sons não enviados
+            sounds_cursor = mycol_sound.find({"sent": {"$ne": True}}, 
+                                             {"_id": 1, "Player": 1, "Hour": 1, "Sound": 1})
+            sounds = list(sounds_cursor)
+            valid_sounds = []
+            for s in sounds:
+                s["_id"] = str(s["_id"])
+                hour = s.get("Hour")
+                if isinstance(hour, str) and is_valid_datetime(hour):
+                    valid_sounds.append(s)
+                else:
+                    print(f"Data inválida detectada em documento _id={s['_id']} -> Hour='{hour}'")
+                    mycol_dados.insert_one({
+                        "type": "invalid_date",
+                        "document": s,
+                        "reason": "Invalid datetime format"
+                    })
+
             if sounds:
                 batch_message = json.dumps({"messages": sounds})
-                client.publish("pisid_mazesound_99", batch_message, qos=2)
+                client.publish("pisid_mazesound_99", batch_message, qos=1)
                 print(f"📤 Enviados {len(sounds)} sons em batch.")
-                save_sent_ids()  # Atualiza o ficheiro
+
+                # Atualiza os documentos como enviados
+                ids = [s["_id"] for s in sounds]
+                mycol_sound.update_many(
+                    {"_id": {"$in": [ObjectId(id) for id in ids]}},
+                    {"$set": {"sent": True}}
+                )
 
         except Exception as e:
             print("❌ Erro ao enviar mensagens MQTT:", e)
 
-        # Espera antes de verificar novamente (evita alto consumo de CPU)
         time.sleep(2)
+
+from bson.objectid import ObjectId  # <- necessário para o update_many
 
 print("🎧 A escutar mensagens recebidas... Pressione Ctrl+C para sair.")
 try:

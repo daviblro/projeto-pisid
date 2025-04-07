@@ -40,7 +40,29 @@ def insert_into_mysql(connection, table, data):
         if table == "movement":
             query = "INSERT INTO movement (Player, Marsami, RoomOrigin, RoomDestiny, Status) VALUES (%s, %s, %s, %s, %s)"
             values = (data["Player"], data["Marsami"], data["RoomOrigin"], data["RoomDestiny"], data["Status"])
-        elif table == "sound":
+
+        elif table == "sound": #abaixo, esta adicionar o campo IDJogo ao sound
+            ''' 
+           {{ search_query = """
+                SELECT IDJogo FROM jogo
+                WHERE utilizador_id = %s AND %s BETWEEN DataHoraInicio AND DataHoraFim
+                ORDER BY DataHoraInicio DESC
+                LIMIT 1
+            """
+            cursor.execute(search_query, (data["Player"], data["Hour"]))
+            result = cursor.fetchone()
+
+            if result is None:
+                print("Nenhum jogo encontrado para esse jogador e hora.")
+                return
+
+            IDJogo = result[0]
+
+            query = "INSERT INTO sound (Player, Hour, Sound, IDJogo) VALUES (%s, %s, %s, %s)"
+            values = (data["Player"], data["Hour"], data["Sound"], IDJogo)}}
+            '''
+
+
             query = "INSERT INTO sound (Player, Hour, Sound) VALUES (%s, %s, %s)"
             values = (data["Player"], data["Hour"], data["Sound"])
 
@@ -51,7 +73,7 @@ def insert_into_mysql(connection, table, data):
         print(f"Erro ao inserir dados no MySQL: {e}")
 
 # Função chamada quando o cliente MQTT se conecta
-def on_connect(client, userdata, flags, reason_code, properties):
+def on_connect(client, userdata, flags, reason_code):
     if reason_code == 0:
         print("Conexão MQTT bem-sucedida!")
         client.subscribe("pisid_mazemov_99")
@@ -91,7 +113,7 @@ client.on_connect = on_connect
 client.on_message = on_message
 
 # Conectar ao broker MQTT
-client.connect('broker.mqtt-dashboard.com', 1883)
+client.connect('broker.emqx.io', 1883)
 
 # Iniciar o loop do MQTT
 try:
