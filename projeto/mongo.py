@@ -6,6 +6,8 @@ import time
 from bson.objectid import ObjectId
 from datetime import datetime
 
+#envia as mensagens do PC1 para PC2, Mongo -> MQTT
+
 # Conectar ao MongoDB
 try:
     clientMongo = MongoClient("mongodb://localhost:27017/", serverSelectionTimeoutMS=5000)
@@ -33,6 +35,12 @@ def is_valid_datetime(dt_str):
     except ValueError:
         return False
 
+def is_valid_sound(sound):
+    if (sound > 18 and sound < 30):
+        return True
+    return False
+
+    
 
 def send_mqtt_messages():
     while True:
@@ -41,47 +49,12 @@ def send_mqtt_messages():
             movements_cursor = mycol_movement.find({"sent": {"$ne": True}}, 
                                                    {"_id": 1, "Player": 1, "Marsami": 1, "RoomOrigin": 1, "RoomDestiny": 1, "Status": 1})
             movements = list(movements_cursor)
+
             for m in movements:
-                m["_id"] = str(m["_id"])  # Converte o ID para string (para envio)
-
-                if m["RoomOrigin"] == 0:
-                    continue  # Ignora movimentos com RoomOrigin = 0
-
-                # Buscar a configuração da sala de origem
-                dados_cursor = mydb["game_configs"].find_one({
-                    "roomsConfig": {
-                        "$elemMatch": {
-                            "roomId": m["RoomOrigin"]
-                        }
-                    }
-                })
-
-                if dados_cursor is None:
-                    print(f"⚠️ Configuração não encontrada para RoomOrigin={m['RoomOrigin']}")
-                    mycol_dados.insert_one({
-                        "type": "missing_config",
-                        "document": m,
-                        "reason": "RoomOrigin not found in config"
-                    })
-                    continue  # Salta este movimento
-
-                connected = next(
-                    (r["connectedTo"] for r in dados_cursor["roomsConfig"] if r["roomId"] == m["RoomOrigin"]),
-                    []
-                )
+                m["_id"] = str(m["_id"])
                 
-                if m["RoomDestiny"] not in connected:
-                    print("Dado inválido - destino não está ligado à origem.")
-                    mycol_dados.insert_one({
-                        "type": "invalid_connection",
-                        "document": m,
-                        "reason": "RoomDestiny not connected to RoomOrigin"
-                    })
-                    continue  # Também salta este movimento
-
-            valid_movements = [m for m in movements if "sent" not in m or not m["sent"]]
-            if valid_movements:
-                batch_message = json.dumps({"messages": valid_movements})
+            if movements:
+                batch_message = json.dumps({"messages": movements})
                 client.publish("pisid_mazemov_99", batch_message)
                 print(f"📤 Enviados {len(movements)} movimentos em batch.")
 
@@ -96,19 +69,9 @@ def send_mqtt_messages():
             sounds_cursor = mycol_sound.find({"sent": {"$ne": True}}, 
                                              {"_id": 1, "Player": 1, "Hour": 1, "Sound": 1})
             sounds = list(sounds_cursor)
-            valid_sounds = []
+         
             for s in sounds:
                 s["_id"] = str(s["_id"])
-                hour = s.get("Hour")
-                if isinstance(hour, str) and is_valid_datetime(hour):
-                    valid_sounds.append(s)
-                else:
-                    print(f"Data inválida detectada em documento _id={s['_id']} -> Hour='{hour}'")
-                    mycol_dados.insert_one({
-                        "type": "invalid_date",
-                        "document": s,
-                        "reason": "Invalid datetime format"
-                    })
 
             if sounds:
                 batch_message = json.dumps({"messages": sounds})

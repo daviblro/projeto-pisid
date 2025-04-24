@@ -5,6 +5,38 @@ import re
 from mysql.connector import Error
 import mysql.connector as mariadb
 import sys
+from datetime import datetime
+
+#código que lê do sensor e coloca na base de dados do mongo tudo, MQTT -> Mongo
+
+def is_valid_datetime(dt_str, message):
+    try:
+        # Tenta converter a string para datetime 
+        datetime.fromisoformat(dt_str)
+        return True
+    except ValueError:
+        print(f"Data inválida detectada em documento -> Hour='{dt_str}'")
+        mycol_dados.insert_one({
+        "type": "invalid_date",
+        "document": message,
+        "reason": "Invalid datetime format"
+        })
+        return False
+
+    
+
+def is_valid_sound(sound, message):
+    if (sound > 18 and sound < 30):
+        return True
+    
+    print(f"Som inválido detectado em documento -> Hour='{message["Sound"]}'")
+    mycol_dados.insert_one({
+        "type": "invalid_sound",
+        "document": message,
+        "reason": "Inválido sound"
+    })               
+    return False
+
 
 # Conexão com MongoDB
 try:
@@ -46,7 +78,7 @@ def connect_to_mysql():
 
     return connection
 
-def insert_game_config(cursor, playerNumber):
+def insert_game_config(cursor):
   
     try:
         # 1. Obter os corredores
@@ -59,6 +91,8 @@ def insert_game_config(cursor, playerNumber):
         for row in records:
             room_a = int(row[0])
             room_b = int(row[1])
+            print(room_a)
+            print(room_b)
 
             # Adiciona conexões para RoomA
             if room_a not in room_map:
@@ -126,12 +160,53 @@ def on_message(client, userdata, msg):
         # Corrige e valida o JSON
         message = fix_json_format(decoded_message)
         if message:
-            if msg.topic == "pisid_mazemov_9":
-                mycol_movement.insert_one(message)
-                print("Movimento guardado no MongoDB!")
+            if msg.topic == "pisid_mazemov_9":                
+                # Buscar a configuração da sala de origem
+                
+                if message["RoomOrigin"] == 0:
+                    pass
+                else:
+
+                    dados_cursor = mycol_game.find_one({
+                        "roomsConfig": {
+                            "$elemMatch": {
+                                "roomId": message["RoomOrigin"]
+                            }
+                        }
+                    })
+
+                    if dados_cursor is None:
+                        print(f"⚠️ Configuração não encontrada para RoomOrigin={message['RoomOrigin']}")
+                        mycol_dados.insert_one({
+                            "type": "missing_config",
+                            "document": message,
+                            "reason": "RoomOrigin not found in config"
+                        })
+
+                    connected = next(
+                        (r["connectedTo"] for r in dados_cursor["roomsConfig"] if r["roomId"] == message["RoomOrigin"]),
+                        []
+                    )
+                    
+                    if message["RoomDestiny"] not in connected:
+                        print("Dado inválido - destino não está ligado à origem.")
+                        mycol_dados.insert_one({
+                            "type": "invalid_connection",
+                            "document": message,
+                            "reason": "RoomDestiny not connected to RoomOrigin"
+                        })
+                    else: 
+                        mycol_movement.insert_one(message)
+                        print("Movimento guardado no MongoDB!")
+
             elif msg.topic == "pisid_mazesound_9":
-                mycol_sound.insert_one(message)
-                print("Som guardado no MongoDB!")
+                hour = message.get("Hour")
+                if(is_valid_sound(message["Sound"], message) and is_valid_datetime(hour, message)):
+                    mycol_sound.insert_one(message)
+                    print("Som guardado no MongoDB!")
+                else:
+                    print("Som errado SOM ERRADO")
+                    
 
     except Exception as e:
         print(f"❌ Erro ao processar mensagem: {e}")
@@ -141,9 +216,8 @@ connection = connect_to_mysql()
 if connection:
     cursor = connection.cursor()
 
-    if len(sys.argv) == 2: 
-        playerNumber = int(sys.argv[1])#nao seria necessari se nao for preciso especificar qual o player
-        insert_game_config(cursor, playerNumber)
+    if len(sys.argv) == 1: 
+        insert_game_config(cursor)
 
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 client.on_connect = on_connect

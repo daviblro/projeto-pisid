@@ -2,6 +2,8 @@ import paho.mqtt.client as mqtt
 import mysql.connector
 import json
 
+#dados enviados pelo pc1 para o pc2, coloca na bd MySql, MQTT -> MySql 
+
 # Função para conectar ao MySQL
 def connect_to_mysql():
     try:
