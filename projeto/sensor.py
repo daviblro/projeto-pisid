@@ -174,61 +174,65 @@ def on_message(client, userdata, msg):
         decoded_message = msg.payload.decode("utf-8")
         print(f"Mensagem recebida no tópico {msg.topic}: {decoded_message}")
 
-        # Corrige e valida o JSON
+        # Corrige e valida o 
         message = fix_json_format(decoded_message)
         if message:
             if msg.topic == "pisid_mazemov_9":                
                 # Buscar a configuração da sala de origem
-                
-                if msg.topic == "pisid_mazemov_9":
-                    required_fields = ["Player", "Marsami", "RoomOrigin", "RoomDestiny", "Status"]
-                    if not validate_required_fields(message, required_fields, "movement"):
-                        return
+ 
+                required_fields = ["Player", "Marsami", "RoomOrigin", "RoomDestiny", "Status"]
+                if not validate_required_fields(message, required_fields, "movement"):
+                    return
+                else:
+                    if message["RoomOrigin"] == 0:
+                        pass
                     else:
-                        if message["RoomOrigin"] == 0:
-                            pass
-                        else:
 
-                            dados_cursor = mycol_game.find_one({
-                                "roomsConfig": {
-                                    "$elemMatch": {
-                                        "roomId": message["RoomOrigin"]
-                                    }
+                        dados_cursor = mycol_game.find_one({
+                            "roomsConfig": {
+                                "$elemMatch": {
+                                    "roomId": message["RoomOrigin"]
                                 }
+                            }
+                        })
+
+                        if dados_cursor is None:
+                            print(f"⚠️ Configuração não encontrada para RoomOrigin={message['RoomOrigin']}")
+                            mycol_dados.insert_one({
+                                "type": "missing_config",
+                                "document": message,
+                                "reason": "RoomOrigin not found in config"
                             })
 
-                            if dados_cursor is None:
-                                print(f"⚠️ Configuração não encontrada para RoomOrigin={message['RoomOrigin']}")
-                                mycol_dados.insert_one({
-                                    "type": "missing_config",
-                                    "document": message,
-                                    "reason": "RoomOrigin not found in config"
-                                })
-
-                            connected = next(
-                                (r["connectedTo"] for r in dados_cursor["roomsConfig"] if r["roomId"] == message["RoomOrigin"]),
-                                []
-                            )
-                            
-                            if message["RoomDestiny"] not in connected:
-                                print("Dado inválido - destino não está ligado à origem.")
-                                mycol_dados.insert_one({
-                                    "type": "invalid_connection",
-                                    "document": message,
-                                    "reason": "RoomDestiny not connected to RoomOrigin"
-                                })
-                            else: 
-                                mycol_movement.insert_one(message)
-                                print("Movimento guardado no MongoDB!")
+                        connected = next(
+                            (r["connectedTo"] for r in dados_cursor["roomsConfig"] if r["roomId"] == message["RoomOrigin"]),
+                            []
+                        )
+                        
+                        if message["RoomDestiny"] not in connected:
+                            print("Dado inválido - destino não está ligado à origem.")
+                            mycol_dados.insert_one({
+                                "type": "invalid_connection",
+                                "document": message,
+                                "reason": "RoomDestiny not connected to RoomOrigin"
+                            })
+                        if(outlier):
+                            pass ##codigo for outlier    
+                        else: 
+                            mycol_movement.insert_one(message)
+                            print("Movimento guardado no MongoDB!")
 
             elif msg.topic == "pisid_mazesound_9":
                 if not validate_required_fields(message, ["Player", "Hour", "Sound"], "sound"):
-                    return
+                    pass
                 
                 hour = message.get("Hour")
                 if(is_valid_sound(message["Sound"], message) and is_valid_datetime(hour, message)):
                     mycol_sound.insert_one(message)
                     print("Som guardado no MongoDB!")
+                
+                if(outlier):
+                    pass ##codigo for outlier
                 else:
                     print("Som errado SOM ERRADO")
                     
