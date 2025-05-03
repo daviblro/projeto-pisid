@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alterar Jogo</title>
+  <link rel="stylesheet" href="index.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #d3d3d3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      width: 300px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-left: -10px;
+    }
+
+    button {
+      background-color: black;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #333;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+
+    .actions button {
+      width: 45%;
+    }
+</style>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const jogoSelecionado = localStorage.getItem('jogoSelecionado');
+      if (jogoSelecionado) {
+        document.getElementById('titulo-jogo').textContent = jogoSelecionado;
+      } else {
+        alert('Nenhum jogo selecionado. Redirecionando para a seleção de jogos.');
+        window.location.href = 'SeleçãoJogo.html';
+      }
+    });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1 id="titulo-jogo">Jogo</h1>
+    <p>Valor a alterar:</p>
+    <form>
+      <label for="nome">Nome do jogador:</label>
+      <input type="text" id="nome" name="nome" placeholder="Insira o nome do jogador" required>
+      <label for="ID">ID do Utilizador:</label>
+      <input type="text" id="ID" name="ID" placeholder="Insira o ID do Utilizador" required>
+      <button type="submit">Alterar</button>
+    </form>
+    <div class="actions">
+      <button onclick="window.location.href='SeleçãoJogo.html'">Voltar</button>
+      <button onclick="window.location.href='IniciarJogo.html'">Iniciar</button>
+    </div>
+  </div>
+</body>
+</html>
