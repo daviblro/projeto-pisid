@@ -9,7 +9,7 @@ def connect_to_mysql():
             host="localhost",
             user="root",
             password="",
-            database="maze"
+            database="pisid"
         )
         print("✅ Conectado ao MySQL com sucesso!")
         create_tables_if_not_exist(connection)
