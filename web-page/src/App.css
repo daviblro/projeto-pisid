@@ -1,0 +1,99 @@
+.App {
+  text-align: center;
+}
+
+.Header {
+  background-color: #3e79f973;
+  height: 10vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 34px;
+  text-align: center;
+  font-weight: bold;
+  padding: 10px;
+}
+
+.ApresentacaoArtista {
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 24px;
+}
+
+.NomeArtista {
+  margin: 10px;
+  text-decoration: underline;
+}
+
+.EstiloArtista {
+  margin: 10px;
+  font-size: 20px;
+}
+
+.AtuacaoArtista {
+  margin: 10px;
+  font-size: 18px;
+}
+
+.VideoArtista {
+  height: 360px;
+  width: 640px;
+  margin-top: 20px;
+  display: none;
+}
+
+.ImagemArtista {
+  height: 30%;
+  width: 30%;
+  border-radius: 20%;
+}
+
+.DescricaoArtista {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  width: 60%;
+  font-size: 20px;
+}
+
+.btn {
+  background-color: #3e79f973;
+  border: none;
+  border-radius: 5px;
+  color: rgb(0, 0, 0);
+  padding: 6px 8px;
+  text-align: center;
+  display: inline-block;
+  font-size: 18px;
+  margin: 6px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.btn:hover {
+  background-color: #007bff93;
+}
+
+body {
+  margin: 0;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.content {
+  flex-grow: 1;
+  text-align: center;
+}
+
+ul {
+  text-align: center;
+  list-style-position: inside;
+}
