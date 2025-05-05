@@ -112,8 +112,8 @@ def fix_json_format(msg):
 
 def on_connect(client, userdata, flags, reason_code, properties):
     print("MQTT conectado com código:", reason_code)
-    client.subscribe("pisid_mazemov_9")
-    client.subscribe("pisid_mazesound_9")
+    client.subscribe("pisid_mazemov_9", qos=1)
+    client.subscribe("pisid_mazesound_9", qos=1)
 
 def on_message(client, userdata, msg):
     try:
@@ -130,6 +130,7 @@ def on_message(client, userdata, msg):
                 return
 
             if message["RoomOrigin"] == 0:
+                #mycol_movement.insert_one(message)
                 return
 
             dados_cursor = mycol_game.find_one({
@@ -211,7 +212,7 @@ if connection:
     cursor = connection.cursor()
     insert_game_config(cursor)
 
-client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2)
 client.on_connect = on_connect
 client.on_message = on_message
 client.connect("broker.emqx.io", 1883)
