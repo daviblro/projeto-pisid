@@ -55,7 +55,7 @@ def send_mqtt_messages():
                 
             if movements:
                 batch_message = json.dumps({"messages": movements})
-                client.publish("pisid_mazemov_99", batch_message)
+                client.publish("pisid_mazemov_99", batch_message, qos=1)
                 print(f"📤 Enviados {len(movements)} movimentos em batch.")
 
                 # Atualiza os documentos como enviados
@@ -76,7 +76,7 @@ def send_mqtt_messages():
             if sounds:
                 batch_message = json.dumps({"messages": sounds})
                 client.publish("pisid_mazesound_99", batch_message, qos=1)
-                print(f"📤 Enviados {len(sounds)} sons em batch.")
+                print(f"📤 Enviados {len(sounds)} sons.")
 
                 # Atualiza os documentos como enviados
                 ids = [s["_id"] for s in sounds]
@@ -88,7 +88,7 @@ def send_mqtt_messages():
         except Exception as e:
             print("❌ Erro ao enviar mensagens MQTT:", e)
 
-        time.sleep(2)
+        #time.sleep(2)
 
 from bson.objectid import ObjectId  # <- necessário para o update_many
 
