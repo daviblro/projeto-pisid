@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 06-Maio-2025 às 03:16
--- Versão do servidor: 10.4.32-MariaDB
--- versão do PHP: 8.2.12
+-- Generation Time: May 06, 2025 at 02:23 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,12 +18,12 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Banco de dados: `pisid_bd9`
+-- Database: `pisid_bd9`
 --
 
 DELIMITER $$
 --
--- Procedimentos
+-- Procedures
 --
 CREATE DEFINER=`root`@`localhost` PROCEDURE `alterar_jogo` (IN `p_idjogo` INT, IN `p_NickJogador` VARCHAR(50), IN `p_IDUtilizador` INT)   BEGIN
     -- Verifica se o jogo existe, não está em execução e se o utilizador é o dono do jogo
@@ -120,20 +120,14 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `criar_jogo` (IN `p_nick_jogador` VA
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `criar_utilizador` (IN `p_email` VARCHAR(50), IN `p_nome` VARCHAR(100), IN `p_telemovel` VARCHAR(12), IN `p_tipo` ENUM('admin','jogador','software'), IN `p_grupo` INT, IN `p_password` VARCHAR(100))   BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        -- Em caso de erro, desfaz qualquer mudança (opcional: ROLLBACK)
-        SELECT 'Erro ao criar utilizador.' AS MensagemErro;
-    END;
-
-    -- 1. Verifica se o utilizador já existe
+    -- Verifica se o utilizador já existe
     IF NOT EXISTS (SELECT 1 FROM utilizador WHERE Email = p_email) THEN
 
-        -- 2. Insere na tabela
+        -- Insere na tabela utilizador
         INSERT INTO utilizador (Email, Nome, Telemovel, Tipo, Grupo)
         VALUES (p_email, p_nome, p_telemovel, p_tipo, p_grupo);
 
-        -- 3. Cria o utilizador MySQL
+        -- Cria o utilizador MySQL
         SET @sql_create = CONCAT(
             'CREATE USER ''', p_email, '''@''localhost'' IDENTIFIED BY ''', p_password, ''';'
         );
@@ -141,15 +135,15 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `criar_utilizador` (IN `p_email` VAR
         EXECUTE stmt1;
         DEALLOCATE PREPARE stmt1;
 
-        -- 4. Concede a role (pré-criada) ao utilizador
+        -- Concede os privilégios diretamente (sem usar role)
         SET @sql_grant = CONCAT(
-            'GRANT ', p_tipo, ' TO ''', p_email, '''@''localhost'' WITH ADMIN OPTION;'
+            'GRANT SELECT ON pisid_bd9.* TO ''', p_email, '''@''localhost'';'
         );
         PREPARE stmt2 FROM @sql_grant;
         EXECUTE stmt2;
         DEALLOCATE PREPARE stmt2;
 
-        -- 5. Mensagem de sucesso
+        -- Mensagem de sucesso
         SELECT 'Utilizador criado com sucesso!' AS Mensagem;
 
     ELSE
@@ -185,7 +179,7 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `jogo`
+-- Table structure for table `jogo`
 --
 
 CREATE TABLE `jogo` (
@@ -199,17 +193,7 @@ CREATE TABLE `jogo` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Extraindo dados da tabela `jogo`
---
-
-INSERT INTO `jogo` (`IDJogo`, `NickJogador`, `DataHoraInicio`, `DataHoraFim`, `Estado`, `max_sound`, `IDUtilizador`) VALUES
-(31, 'cosme 2', '2025-05-06 01:03:35', NULL, 'nao_inicializado', 100, 14),
-(32, 'gon 2', '2025-05-06 01:03:46', NULL, 'nao_inicializado', 100, 14),
-(33, 'a', '2025-05-06 01:14:03', NULL, 'nao_inicializado', 100, 14),
-(36, 's', '2025-05-06 01:15:01', NULL, 'nao_inicializado', 100, 14);
-
---
--- Acionadores `jogo`
+-- Triggers `jogo`
 --
 DELIMITER $$
 CREATE TRIGGER `criar_salas_apos_criar_jogo` AFTER INSERT ON `jogo` FOR EACH ROW BEGIN
@@ -238,7 +222,7 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `mensagens`
+-- Table structure for table `mensagens`
 --
 
 CREATE TABLE `mensagens` (
@@ -255,7 +239,7 @@ CREATE TABLE `mensagens` (
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `movement`
+-- Table structure for table `movement`
 --
 
 CREATE TABLE `movement` (
@@ -270,7 +254,7 @@ CREATE TABLE `movement` (
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `sala`
+-- Table structure for table `sala`
 --
 
 CREATE TABLE `sala` (
@@ -282,38 +266,10 @@ CREATE TABLE `sala` (
   `Gatilhos` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Extraindo dados da tabela `sala`
---
-
-INSERT INTO `sala` (`IDJogo_Sala`, `IDSala`, `NumeroMarsamisOdd`, `NumeroMarsamisEven`, `Pontos`, `Gatilhos`) VALUES
-(33, 0, 15, 15, 0, 0),
-(36, 0, 15, 15, 0, 0),
-(33, 1, 0, 0, 0, 0),
-(36, 1, 0, 0, 0, 0),
-(33, 2, 0, 0, 0, 0),
-(36, 2, 0, 0, 0, 0),
-(33, 3, 0, 0, 0, 0),
-(36, 3, 0, 0, 0, 0),
-(33, 4, 0, 0, 0, 0),
-(36, 4, 0, 0, 0, 0),
-(33, 5, 0, 0, 0, 0),
-(36, 5, 0, 0, 0, 0),
-(33, 6, 0, 0, 0, 0),
-(36, 6, 0, 0, 0, 0),
-(33, 7, 0, 0, 0, 0),
-(36, 7, 0, 0, 0, 0),
-(33, 8, 0, 0, 0, 0),
-(36, 8, 0, 0, 0, 0),
-(33, 9, 0, 0, 0, 0),
-(36, 9, 0, 0, 0, 0),
-(33, 10, 0, 0, 0, 0),
-(36, 10, 0, 0, 0, 0);
-
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `sound`
+-- Table structure for table `sound`
 --
 
 CREATE TABLE `sound` (
@@ -326,7 +282,7 @@ CREATE TABLE `sound` (
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `utilizador`
+-- Table structure for table `utilizador`
 --
 
 CREATE TABLE `utilizador` (
@@ -339,122 +295,124 @@ CREATE TABLE `utilizador` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Extraindo dados da tabela `utilizador`
+-- Dumping data for table `utilizador`
 --
 
 INSERT INTO `utilizador` (`Telemovel`, `Tipo`, `Grupo`, `Nome`, `IDUtilizador`, `Email`) VALUES
-('111222333', 'jogador', 9, 'teste', 14, 'teste@gmail.com');
+('111222333', 'jogador', 9, 'teste', 15, 'teste@gmail.com'),
+('111222334', 'jogador', 9, 'ola', 16, 'ola@gmail.com'),
+('123456789', 'jogador', 9, 'oi', 17, 'oi@gmail.com');
 
 --
--- Índices para tabelas despejadas
+-- Indexes for dumped tables
 --
 
 --
--- Índices para tabela `jogo`
+-- Indexes for table `jogo`
 --
 ALTER TABLE `jogo`
   ADD PRIMARY KEY (`IDJogo`),
   ADD KEY `IDUtilizador_Jogo` (`IDUtilizador`) USING BTREE;
 
 --
--- Índices para tabela `mensagens`
+-- Indexes for table `mensagens`
 --
 ALTER TABLE `mensagens`
   ADD PRIMARY KEY (`IDMensagem`) USING BTREE,
   ADD KEY `IDJogo_Mensagens` (`IDJogo`) USING BTREE;
 
 --
--- Índices para tabela `movement`
+-- Indexes for table `movement`
 --
 ALTER TABLE `movement`
   ADD PRIMARY KEY (`IDMovement`),
   ADD KEY `IDJogo_Movement` (`IDJogo`) USING BTREE;
 
 --
--- Índices para tabela `sala`
+-- Indexes for table `sala`
 --
 ALTER TABLE `sala`
   ADD PRIMARY KEY (`IDSala`,`IDJogo_Sala`) USING BTREE,
   ADD KEY `IDJogo_Sala` (`IDJogo_Sala`) USING BTREE;
 
 --
--- Índices para tabela `sound`
+-- Indexes for table `sound`
 --
 ALTER TABLE `sound`
   ADD PRIMARY KEY (`IDSound`),
   ADD KEY `IDJogo_Sound` (`IDJogo`) USING BTREE;
 
 --
--- Índices para tabela `utilizador`
+-- Indexes for table `utilizador`
 --
 ALTER TABLE `utilizador`
   ADD PRIMARY KEY (`IDUtilizador`),
   ADD UNIQUE KEY `Email` (`Email`);
 
 --
--- AUTO_INCREMENT de tabelas despejadas
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT de tabela `jogo`
+-- AUTO_INCREMENT for table `jogo`
 --
 ALTER TABLE `jogo`
   MODIFY `IDJogo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
--- AUTO_INCREMENT de tabela `mensagens`
+-- AUTO_INCREMENT for table `mensagens`
 --
 ALTER TABLE `mensagens`
   MODIFY `IDMensagem` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de tabela `movement`
+-- AUTO_INCREMENT for table `movement`
 --
 ALTER TABLE `movement`
   MODIFY `IDMovement` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de tabela `sound`
+-- AUTO_INCREMENT for table `sound`
 --
 ALTER TABLE `sound`
   MODIFY `IDSound` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de tabela `utilizador`
+-- AUTO_INCREMENT for table `utilizador`
 --
 ALTER TABLE `utilizador`
-  MODIFY `IDUtilizador` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `IDUtilizador` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
--- Restrições para despejos de tabelas
+-- Constraints for dumped tables
 --
 
 --
--- Limitadores para a tabela `jogo`
+-- Constraints for table `jogo`
 --
 ALTER TABLE `jogo`
   ADD CONSTRAINT `IDUtilizador_Jogo` FOREIGN KEY (`IDUtilizador`) REFERENCES `utilizador` (`IDUtilizador`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Limitadores para a tabela `mensagens`
+-- Constraints for table `mensagens`
 --
 ALTER TABLE `mensagens`
   ADD CONSTRAINT `IDJogo_Mensagens` FOREIGN KEY (`IDJogo`) REFERENCES `jogo` (`IDJogo`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Limitadores para a tabela `movement`
+-- Constraints for table `movement`
 --
 ALTER TABLE `movement`
   ADD CONSTRAINT `IDJogo_Movement` FOREIGN KEY (`IDJogo`) REFERENCES `jogo` (`IDJogo`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Limitadores para a tabela `sala`
+-- Constraints for table `sala`
 --
 ALTER TABLE `sala`
   ADD CONSTRAINT `IDJogo_Sala` FOREIGN KEY (`IDJogo_Sala`) REFERENCES `jogo` (`IDJogo`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Limitadores para a tabela `sound`
+-- Constraints for table `sound`
 --
 ALTER TABLE `sound`
   ADD CONSTRAINT `IDJogo_Sound` FOREIGN KEY (`IDJogo`) REFERENCES `jogo` (`IDJogo`) ON DELETE CASCADE ON UPDATE CASCADE;
