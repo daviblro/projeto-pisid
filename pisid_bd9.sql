@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 06, 2025 at 01:39 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Tempo de geração: 06-Maio-2025 às 03:16
+-- Versão do servidor: 10.4.32-MariaDB
+-- versão do PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,12 +18,12 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `pisid_bd9`
+-- Banco de dados: `pisid_bd9`
 --
 
 DELIMITER $$
 --
--- Procedures
+-- Procedimentos
 --
 CREATE DEFINER=`root`@`localhost` PROCEDURE `alterar_jogo` (IN `p_idjogo` INT, IN `p_NickJogador` VARCHAR(50), IN `p_IDUtilizador` INT)   BEGIN
     -- Verifica se o jogo existe, não está em execução e se o utilizador é o dono do jogo
@@ -185,7 +185,7 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Table structure for table `jogo`
+-- Estrutura da tabela `jogo`
 --
 
 CREATE TABLE `jogo` (
@@ -199,41 +199,38 @@ CREATE TABLE `jogo` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `jogo`
+-- Extraindo dados da tabela `jogo`
 --
 
 INSERT INTO `jogo` (`IDJogo`, `NickJogador`, `DataHoraInicio`, `DataHoraFim`, `Estado`, `max_sound`, `IDUtilizador`) VALUES
-(30, 'Mufasa', '2025-05-05 23:31:51', NULL, 'nao_inicializado', 100, 13);
+(31, 'cosme 2', '2025-05-06 01:03:35', NULL, 'nao_inicializado', 100, 14),
+(32, 'gon 2', '2025-05-06 01:03:46', NULL, 'nao_inicializado', 100, 14),
+(33, 'a', '2025-05-06 01:14:03', NULL, 'nao_inicializado', 100, 14),
+(36, 's', '2025-05-06 01:15:01', NULL, 'nao_inicializado', 100, 14);
 
 --
--- Triggers `jogo`
+-- Acionadores `jogo`
 --
 DELIMITER $$
 CREATE TRIGGER `criar_salas_apos_criar_jogo` AFTER INSERT ON `jogo` FOR EACH ROW BEGIN
   DECLARE i INT DEFAULT 0;
-  DECLARE nova_IDSala INT;
 
-  -- Criar 11 salas (de 0 a 10) para o novo jogo
+  -- Criação das 11 salas (de 0 a 10) para o novo jogo
   WHILE i <= 10 DO
-    -- Gerar um novo IDSala único (ID da sala será calculado)
-    SET nova_IDSala = (NEW.IDJogo * 100) + i;
-
-    -- Inserir nova sala com valores específicos
-    INSERT INTO sala (
-      IDJogo_Sala, IDSala,
-      NumeroMarsamisOdd, NumeroMarsamisEven,
-      Pontos, Gatilhos
-    )
-    VALUES (
-      NEW.IDJogo,
-      nova_IDSala,
-      IF(i = 0, 15, 0),  -- 15 MarsamisOdd na sala 0
-      IF(i = 0, 15, 0),  -- 15 MarsamisEven na sala 0
-      0, 0
-    );
-    
+    -- Verifica se a combinação de IDJogo_Sala e IDSala já existe na tabela
+    IF NOT EXISTS (SELECT 1 FROM sala WHERE IDJogo_Sala = NEW.IDJogo AND IDSala = i) THEN
+      -- Se for a sala 0, coloca valores específicos para MarsamiOdd e MarsamiEven
+      IF i = 0 THEN
+        INSERT INTO sala (IDJogo_Sala, IDSala, NumeroMarsamisOdd, NumeroMarsamisEven, Pontos, Gatilhos)
+        VALUES (NEW.IDJogo, i, 15, 15, 0, 0);
+      ELSE
+        INSERT INTO sala (IDJogo_Sala, IDSala, NumeroMarsamisOdd, NumeroMarsamisEven, Pontos, Gatilhos)
+        VALUES (NEW.IDJogo, i, 0, 0, 0, 0);
+      END IF;
+    END IF;
     SET i = i + 1;
   END WHILE;
+
 END
 $$
 DELIMITER ;
@@ -241,7 +238,7 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Table structure for table `mensagens`
+-- Estrutura da tabela `mensagens`
 --
 
 CREATE TABLE `mensagens` (
@@ -258,7 +255,7 @@ CREATE TABLE `mensagens` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `movement`
+-- Estrutura da tabela `movement`
 --
 
 CREATE TABLE `movement` (
@@ -273,7 +270,7 @@ CREATE TABLE `movement` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sala`
+-- Estrutura da tabela `sala`
 --
 
 CREATE TABLE `sala` (
@@ -286,26 +283,37 @@ CREATE TABLE `sala` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `sala`
+-- Extraindo dados da tabela `sala`
 --
 
 INSERT INTO `sala` (`IDJogo_Sala`, `IDSala`, `NumeroMarsamisOdd`, `NumeroMarsamisEven`, `Pontos`, `Gatilhos`) VALUES
-(30, 3000, 15, 15, 0, 0),
-(30, 3001, 0, 0, 0, 0),
-(30, 3002, 0, 0, 0, 0),
-(30, 3003, 0, 0, 0, 0),
-(30, 3004, 0, 0, 0, 0),
-(30, 3005, 0, 0, 0, 0),
-(30, 3006, 0, 0, 0, 0),
-(30, 3007, 0, 0, 0, 0),
-(30, 3008, 0, 0, 0, 0),
-(30, 3009, 0, 0, 0, 0),
-(30, 3010, 0, 0, 0, 0);
+(33, 0, 15, 15, 0, 0),
+(36, 0, 15, 15, 0, 0),
+(33, 1, 0, 0, 0, 0),
+(36, 1, 0, 0, 0, 0),
+(33, 2, 0, 0, 0, 0),
+(36, 2, 0, 0, 0, 0),
+(33, 3, 0, 0, 0, 0),
+(36, 3, 0, 0, 0, 0),
+(33, 4, 0, 0, 0, 0),
+(36, 4, 0, 0, 0, 0),
+(33, 5, 0, 0, 0, 0),
+(36, 5, 0, 0, 0, 0),
+(33, 6, 0, 0, 0, 0),
+(36, 6, 0, 0, 0, 0),
+(33, 7, 0, 0, 0, 0),
+(36, 7, 0, 0, 0, 0),
+(33, 8, 0, 0, 0, 0),
+(36, 8, 0, 0, 0, 0),
+(33, 9, 0, 0, 0, 0),
+(36, 9, 0, 0, 0, 0),
+(33, 10, 0, 0, 0, 0),
+(36, 10, 0, 0, 0, 0);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sound`
+-- Estrutura da tabela `sound`
 --
 
 CREATE TABLE `sound` (
@@ -318,7 +326,7 @@ CREATE TABLE `sound` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `utilizador`
+-- Estrutura da tabela `utilizador`
 --
 
 CREATE TABLE `utilizador` (
@@ -331,122 +339,122 @@ CREATE TABLE `utilizador` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `utilizador`
+-- Extraindo dados da tabela `utilizador`
 --
 
 INSERT INTO `utilizador` (`Telemovel`, `Tipo`, `Grupo`, `Nome`, `IDUtilizador`, `Email`) VALUES
-('111222333', 'jogador', 9, 'teste', 13, 'teste@gmail.com');
+('111222333', 'jogador', 9, 'teste', 14, 'teste@gmail.com');
 
 --
--- Indexes for dumped tables
+-- Índices para tabelas despejadas
 --
 
 --
--- Indexes for table `jogo`
+-- Índices para tabela `jogo`
 --
 ALTER TABLE `jogo`
   ADD PRIMARY KEY (`IDJogo`),
   ADD KEY `IDUtilizador_Jogo` (`IDUtilizador`) USING BTREE;
 
 --
--- Indexes for table `mensagens`
+-- Índices para tabela `mensagens`
 --
 ALTER TABLE `mensagens`
   ADD PRIMARY KEY (`IDMensagem`) USING BTREE,
   ADD KEY `IDJogo_Mensagens` (`IDJogo`) USING BTREE;
 
 --
--- Indexes for table `movement`
+-- Índices para tabela `movement`
 --
 ALTER TABLE `movement`
   ADD PRIMARY KEY (`IDMovement`),
   ADD KEY `IDJogo_Movement` (`IDJogo`) USING BTREE;
 
 --
--- Indexes for table `sala`
+-- Índices para tabela `sala`
 --
 ALTER TABLE `sala`
-  ADD PRIMARY KEY (`IDSala`) USING BTREE,
+  ADD PRIMARY KEY (`IDSala`,`IDJogo_Sala`) USING BTREE,
   ADD KEY `IDJogo_Sala` (`IDJogo_Sala`) USING BTREE;
 
 --
--- Indexes for table `sound`
+-- Índices para tabela `sound`
 --
 ALTER TABLE `sound`
   ADD PRIMARY KEY (`IDSound`),
   ADD KEY `IDJogo_Sound` (`IDJogo`) USING BTREE;
 
 --
--- Indexes for table `utilizador`
+-- Índices para tabela `utilizador`
 --
 ALTER TABLE `utilizador`
   ADD PRIMARY KEY (`IDUtilizador`),
   ADD UNIQUE KEY `Email` (`Email`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT de tabelas despejadas
 --
 
 --
--- AUTO_INCREMENT for table `jogo`
+-- AUTO_INCREMENT de tabela `jogo`
 --
 ALTER TABLE `jogo`
-  MODIFY `IDJogo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `IDJogo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
--- AUTO_INCREMENT for table `mensagens`
+-- AUTO_INCREMENT de tabela `mensagens`
 --
 ALTER TABLE `mensagens`
   MODIFY `IDMensagem` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `movement`
+-- AUTO_INCREMENT de tabela `movement`
 --
 ALTER TABLE `movement`
   MODIFY `IDMovement` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `sound`
+-- AUTO_INCREMENT de tabela `sound`
 --
 ALTER TABLE `sound`
   MODIFY `IDSound` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `utilizador`
+-- AUTO_INCREMENT de tabela `utilizador`
 --
 ALTER TABLE `utilizador`
-  MODIFY `IDUtilizador` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `IDUtilizador` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
--- Constraints for dumped tables
+-- Restrições para despejos de tabelas
 --
 
 --
--- Constraints for table `jogo`
+-- Limitadores para a tabela `jogo`
 --
 ALTER TABLE `jogo`
   ADD CONSTRAINT `IDUtilizador_Jogo` FOREIGN KEY (`IDUtilizador`) REFERENCES `utilizador` (`IDUtilizador`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `mensagens`
+-- Limitadores para a tabela `mensagens`
 --
 ALTER TABLE `mensagens`
   ADD CONSTRAINT `IDJogo_Mensagens` FOREIGN KEY (`IDJogo`) REFERENCES `jogo` (`IDJogo`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `movement`
+-- Limitadores para a tabela `movement`
 --
 ALTER TABLE `movement`
   ADD CONSTRAINT `IDJogo_Movement` FOREIGN KEY (`IDJogo`) REFERENCES `jogo` (`IDJogo`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `sala`
+-- Limitadores para a tabela `sala`
 --
 ALTER TABLE `sala`
   ADD CONSTRAINT `IDJogo_Sala` FOREIGN KEY (`IDJogo_Sala`) REFERENCES `jogo` (`IDJogo`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `sound`
+-- Limitadores para a tabela `sound`
 --
 ALTER TABLE `sound`
   ADD CONSTRAINT `IDJogo_Sound` FOREIGN KEY (`IDJogo`) REFERENCES `jogo` (`IDJogo`) ON DELETE CASCADE ON UPDATE CASCADE;
