@@ -1,5 +1,22 @@
 <?php
+header("Access-Control-Allow-Origin: http://localhost:3000"); // Permite todas as origens
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
 header('Content-Type: application/json');
+
+// Trata requisição preflight (OPTIONS)
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+// A partir daqui, só lida com POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405); // Método não permitido
+    echo json_encode(["success" => false, "message" => "Método não permitido."]);
+    exit();
+}
+
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT); // Habilita exceções
 
 $conn = new mysqli('localhost', 'root', '', 'pisid_bd9');
