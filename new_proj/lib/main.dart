@@ -9,15 +9,18 @@ void main() {
   runApp(const LoginApp());
 }
 
-class LoginApp extends StatelessWidget { //Root Widget of the Application (StatelessWidget is unmutable, used for static UI components like icons, text and static layouts) this class sets up the overall structure and configuration of the app.
+class LoginApp extends StatelessWidget {
+  //Root Widget of the Application (StatelessWidget is unmutable, used for static UI components like icons, text and static layouts) this class sets up the overall structure and configuration of the app.
   const LoginApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false, //hides the debug banner typically shown in debug mode
-      title: 'Login App', 
-      theme: ThemeData( //provides consistent theming across the app
+      debugShowCheckedModeBanner:
+          false, //hides the debug banner typically shown in debug mode
+      title: 'Login App',
+      theme: ThemeData(
+        //provides consistent theming across the app
         primarySwatch: Colors.blue,
       ),
       home: const LoginPage(), //sets the initial screen to the LoginPage
@@ -25,7 +28,8 @@ class LoginApp extends StatelessWidget { //Root Widget of the Application (State
   }
 }
 
-class LoginPage extends StatefulWidget { // This widget needs to manage user input, show a loading indicator while performing a login operation, and possibly update the UI based on the login response. (StatefulWidget has a mutable state. Suitable for dynamic UI components that need to change according to user interaction, like forms, animations and real.time updates) 
+class LoginPage extends StatefulWidget {
+  // This widget needs to manage user input, show a loading indicator while performing a login operation, and possibly update the UI based on the login response. (StatefulWidget has a mutable state. Suitable for dynamic UI components that need to change according to user interaction, like forms, animations and real.time updates)
   const LoginPage({super.key});
 
   @override
@@ -33,17 +37,23 @@ class LoginPage extends StatefulWidget { // This widget needs to manage user inp
   _LoginPageState createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> { //state management class for the 'LoginPage' widget+
+class _LoginPageState extends State<LoginPage> {
+  //state management class for the 'LoginPage' widget+
 
-  final usernameController = TextEditingController(text: "root"); //controller that manages input for the username
-  final passwordController = TextEditingController(text: ""); //controller that manages the input for the password
-  final ipController = TextEditingController(text: "127.0.0.1"); //controller that manages input for the IP address
-  final portController = TextEditingController(text: "80"); //controller that manages input for the port
-  final bool _isLoading = false; //boolean variable that tracks whether a login attempt is in progress or not. It's used to show a loading indicator when the login button is pressed.
-
+  final usernameController = TextEditingController(
+      text: "root"); //controller that manages input for the username
+  final passwordController = TextEditingController(
+      text: ""); //controller that manages the input for the password
+  final ipController = TextEditingController(
+      text: "127.0.0.1"); //controller that manages input for the IP address
+  final portController = TextEditingController(
+      text: "80"); //controller that manages input for the port
+  final bool _isLoading =
+      false; //boolean variable that tracks whether a login attempt is in progress or not. It's used to show a loading indicator when the login button is pressed.
 
   @override
-  Widget build(BuildContext context) {//builds the UI of the login page.
+  Widget build(BuildContext context) {
+    //builds the UI of the login page.
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -57,7 +67,8 @@ class _LoginPageState extends State<LoginPage> { //state management class for th
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
-              TextFormField(  //input field for the username
+              TextFormField(
+                //input field for the username
                 controller: usernameController,
                 textAlign: TextAlign.center,
                 decoration: const InputDecoration(
@@ -68,42 +79,45 @@ class _LoginPageState extends State<LoginPage> { //state management class for th
                 keyboardType: TextInputType.name,
               ),
               const SizedBox(height: 20),
-              TextFormField(  //input field for the password
-            controller: passwordController,
-            decoration: const InputDecoration(
+              TextFormField(
+                //input field for the password
+                controller: passwordController,
+                decoration: const InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock),
                 ),
                 obscureText: true,
-          ),
-          const SizedBox(height: 20),
-          TextFormField(  //input field for the IP address
-            controller: ipController,
-            textAlign: TextAlign.center,
-            decoration: const InputDecoration(
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                //input field for the IP address
+                controller: ipController,
+                textAlign: TextAlign.center,
+                decoration: const InputDecoration(
                   labelText: 'IP (xxx.xxx...)',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock),
                 ),
-          ),
-          const SizedBox(height: 20),
-              TextFormField(  //input field for the port
-            controller: portController,
-            textAlign: TextAlign.center,
-            decoration: const InputDecoration(
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                //input field for the port
+                controller: portController,
+                textAlign: TextAlign.center,
+                decoration: const InputDecoration(
                   labelText: 'Port Xamp',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock),
                 ),
-          ),
+              ),
               const SizedBox(height: 30), //defines login button
               _isLoading
                   ? const CircularProgressIndicator()
                   : ElevatedButton(
                       onPressed: () {
                         validateLogin();
-              },
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         shape: RoundedRectangleBorder(
@@ -125,7 +139,8 @@ class _LoginPageState extends State<LoginPage> { //state management class for th
   }
 
   @override
-  void dispose() {  //Dispose controllers when the widget is removed from the widget tree (as to free up resources)
+  void dispose() {
+    //Dispose controllers when the widget is removed from the widget tree (as to free up resources)
     usernameController.dispose();
     passwordController.dispose();
     ipController.dispose();
@@ -134,17 +149,21 @@ class _LoginPageState extends State<LoginPage> { //state management class for th
   }
 
   validateLogin() async {
-    String loginURL = "http://${ipController.text.trim()}:${portController.text.trim()}/scripts/php/validateLogin.php";
+    String loginURL =
+        "http://${ipController.text.trim()}:${portController.text.trim()}/validateLogin.php";
     print(loginURL);
     http.Response response = http.Response('', 400); //Default response
-    try { //sending a POST request with the username and password
+    try {
+      //sending a POST request with the username and password
       response = await http.post(Uri.parse(loginURL), body: {
-        
         'username': usernameController.text.trim(), //get the username text
         'password': passwordController.text.trim() //get password text
       });
-      print(response);
-    } catch (e) { //Shows alert dialog if the connection fails
+      print("Resposta do servidor: ${response.body}");
+    } catch (e) {
+      //Shows alert dialog if the connection fails
+      print("Status code: ${response.statusCode}");
+      print("Body: ${response.body}");
       showDialog(
         context: context,
         builder: (context) {
@@ -154,19 +173,23 @@ class _LoginPageState extends State<LoginPage> { //state management class for th
         },
       );
     }
-    if(response.statusCode == 200){ //if the response is successful
+    if (response.statusCode == 200) {
+      //if the response is successful
       var jsonData = json.decode(response.body);
-      if(jsonData["success"]){ //if login is successful then stores credentials in SharedPreferences
+      if (jsonData["success"]) {
+        //if login is successful then stores credentials in SharedPreferences
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('username', usernameController.text.trim());
         await prefs.setString('password', passwordController.text.trim());
         await prefs.setString('ip', ipController.text.trim());
         await prefs.setString('port', portController.text.trim());
-        Navigator.pushReplacement( //Navigate to 'Mensagens' screen
+        Navigator.pushReplacement(
+          //Navigate to 'Mensagens' screen
           context,
           MaterialPageRoute(builder: (context) => const Mensagens()),
         );
-      } else { //Shows alert dialog if login fails
+      } else {
+        //Shows alert dialog if login fails
         showDialog(
           context: context,
           builder: (context) {

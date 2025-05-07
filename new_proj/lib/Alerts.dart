@@ -42,7 +42,7 @@ class MensagensMainState extends State<MensagensMain> {  //State object for the 
   var mostRecentMensagens = 0;  //Most recent messages counter
 
   //Fields for the data table
-  var tableFields = ['Msg', 'Leitura', 'Sala', 'Sensor', 'TipoMensagensa', 'Hora', 'HoraEscrita'];
+  var tableFields = ['Msg', 'Leitura', 'Sensor', 'TipoMensagem', 'Hora', 'HoraEscrita'];
   var tableMensagens = <int, List<String>>{};
 
   int _selectedIndex = 0; //Index of the selected navigation item
@@ -156,7 +156,7 @@ class MensagensMainState extends State<MensagensMain> {  //State object for the 
     String? ip = prefs.getString('ip');
     String? port = prefs.getString('port');
     String? password = prefs.getString('password');
-    String MensagensURL = "http://${ip!}:${port!}/scripts/php/getMsgs.php";
+    String MensagensURL = "http://${ip!}:${port!}/getMsgs.php";
     var response = await http
         .post(Uri.parse(MensagensURL), body: {'username': username, 'password': password});
     if (response.statusCode == 200) {

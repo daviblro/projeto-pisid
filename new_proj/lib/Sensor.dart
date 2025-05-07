@@ -57,7 +57,7 @@ class _SensorChartPageState extends State<SensorChartPage> {
           child: LineChart(
             LineChartData(
               minY: 00, // Limite inferior do eixo Y
-              maxY: readingNormalNoise*1.5, // Limite superior do eixo Y 
+              maxY: readingNormalNoise * 1.5, // Limite superior do eixo Y
               lineBarsData: [
                 //Data for the lines in the chart
                 LineChartBarData(
@@ -75,21 +75,21 @@ class _SensorChartPageState extends State<SensorChartPage> {
                 ),
               ],
               titlesData: FlTitlesData(
-                leftTitles:SideTitles(showTitles: true), //Show left titles
-                bottomTitles: SideTitles(showTitles: true), 
+                leftTitles: SideTitles(showTitles: true), //Show left titles
+                bottomTitles: SideTitles(showTitles: true),
                 rightTitles: SideTitles(showTitles: false), //Hide right titles
                 topTitles: SideTitles(showTitles: false),
               ),
               gridData: FlGridData(show: true), //show grid in the chart
-                          // Adiciona uma linha horizontal vermelha no valor 25
-            extraLinesData: ExtraLinesData(horizontalLines: [
-              HorizontalLine(
-                y: readingNormalNoise + readingTolerationNoise, //AQUI
-                color: Colors.blue,
-                strokeWidth: 2,
-                dashArray: [10, 5], // Linha pontilhada
-              ),
-            ]),
+              // Adiciona uma linha horizontal vermelha no valor 25
+              extraLinesData: ExtraLinesData(horizontalLines: [
+                HorizontalLine(
+                  y: readingNormalNoise + readingTolerationNoise, //AQUI
+                  color: Colors.blue,
+                  strokeWidth: 2,
+                  dashArray: [10, 5], // Linha pontilhada
+                ),
+              ]),
             ),
           ),
         ),
@@ -110,7 +110,6 @@ class _SensorChartPageState extends State<SensorChartPage> {
     );
   }
 
-
   @override
   void initState() {
     const interval = Duration(seconds: 1);
@@ -128,16 +127,15 @@ class _SensorChartPageState extends State<SensorChartPage> {
     String? password = prefs.getString('password');
     String? ip = prefs.getString('ip');
     String? port = prefs.getString('port');
-        for (int id = 1; id <= nSensors; id++) {
-      String readingsURL =
-          "http://$ip:$port/scripts/php/getSensors.php";
+    for (int id = 1; id <= nSensors; id++) {
+      String readingsURL = "http://$ip:$port/getSensors.php";
       var response = await http.post(Uri.parse(readingsURL), body: {
         'username': username,
         'password': password,
         'sensor': (id).toString()
       });
 
-    var  flaglimit = 0;
+      var flaglimit = 0;
       if (response.statusCode == 200) {
         var jsonData = json.decode(response.body);
         if (jsonData != null && jsonData.length > 0) {
@@ -146,52 +144,52 @@ class _SensorChartPageState extends State<SensorChartPage> {
           double timeDiff;
 
           for (var reading in jsonData) {
-            readingNormalNoise= double.parse(reading["normalnoise"].toString());
+            readingNormalNoise =
+                double.parse(reading["normalnoise"].toString());
             //readingTolerationNoise= double.parse(reading["noisevartoteration"].toString());
-            readingTolerationNoise= readingNormalNoise*0.15;
+            readingTolerationNoise = readingNormalNoise * 0.15;
             readingTime = DateTime.parse(reading["Hour"].toString());
-            currentTime =
-                DateTime.now().add(const Duration(hours: 1)); // correct time to GMT+0
+            currentTime = DateTime.now()
+                .add(const Duration(hours: 1)); // correct time to GMT+0
             timeDiff = currentTime.difference(readingTime).inSeconds.toDouble();
             //if (timeDiff >= 0.0 && timeDiff < timeLimit) {
             if (timeDiff.isFinite) {
-            if (timeDiff >= 0.0 ) {  
-              var value = double.parse(reading["Sound"].toString());
-              sensor1Color = Colors.green;
-              //print(readingNormalNoise);
-              //print(readingTolerationNoise);
-              if (value > readingNormalNoise + (readingTolerationNoise/2)) {
-                flaglimit = 1;
+              if (timeDiff >= 0.0) {
+                var value = double.parse(reading["Sound"].toString());
+                sensor1Color = Colors.green;
+                //print(readingNormalNoise);
+                //print(readingTolerationNoise);
+                if (value > readingNormalNoise + (readingTolerationNoise / 2)) {
+                  flaglimit = 1;
+                }
+                switch (id) {
+                  case 1:
+                    if (!sensor1Data.contains(FlSpot(timeDiff, value))) {
+                      sensor1Data.add(FlSpot(timeDiff, value));
+                      // correct id so it start at 0 and not 1
+                    }
+                    break;
+                  case 2:
+                    if (!sensor2Data.contains(FlSpot(timeDiff, value))) {
+                      sensor2Data.add(FlSpot(timeDiff, value));
+                    }
+                    break;
+                }
               }
-              switch (id) {
-                case 1:
-                  if (!sensor1Data.contains(FlSpot(timeDiff, value))) {
-                    sensor1Data.add(FlSpot(timeDiff,
-                        value)); 
-                        // correct id so it start at 0 and not 1
-                  }
-                  break;
-                case 2:
-                  if (!sensor2Data.contains(FlSpot(timeDiff, value))) {
-                    sensor2Data.add(FlSpot(timeDiff,
-                        value));
-                  }
-                  break;
-              }
-            }
             }
           }
         }
-          if (flaglimit == 1) {
-                sensor1Color= Colors.red;  
-                print ("RED");
-          } else {
-                sensor1Color=Colors.green;  
-                //print ("GREEN");
-      }     
+        if (flaglimit == 1) {
+          sensor1Color = Colors.red;
+          print("RED");
+        } else {
+          sensor1Color = Colors.green;
+          //print ("GREEN");
+        }
         setState(() {});
       } else {
-        print('Failed to load data: ${response.statusCode}');// Handle the error
+        print(
+            'Failed to load data: ${response.statusCode}'); // Handle the error
       }
     }
   }

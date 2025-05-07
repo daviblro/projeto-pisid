@@ -171,7 +171,7 @@ Future<void> _getDataWithArgs(String script,  List<String> argLabels, List<TextE
     String? ip = prefs.getString('ip');
     String? port = prefs.getString('port');
 
-    String readingsURL = "http://${ip!}:${port!}/scripts/php/$script";
+    String readingsURL = "http://${ip!}:${port!}/$script";
     Map<String,String?> body = {'username': username, 'password': password,};
     for (int index = 0; index < argLabels.length; index++) {
       String value = "null";
