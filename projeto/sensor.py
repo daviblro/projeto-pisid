@@ -131,6 +131,15 @@ def on_message(client, userdata, msg):
             
                         # Ignora verificação de configuração se RoomOrigin for 0
             if message["RoomOrigin"] == 0:
+                payload = {"Type": "Score", "Player":9, "Room": 2}
+                
+
+                result, mid = client.publish("pisid_mazeact 9", json.dumps(payload), qos=2)
+
+                if result == mqtt.MQTT_ERR_SUCCESS:
+                    print("✅✅✅✅✅✅✅✅")
+                else:
+                    print("❌❌❌❌❌❌")
                 mycol_movement.insert_one(message)
                 print("✅ Movimento com RoomOrigin=0 guardado no MongoDB!")
                 return
@@ -165,6 +174,7 @@ def on_message(client, userdata, msg):
                 })
             else:
                 mycol_movement.insert_one(message)
+                
                 print("✅ Movimento guardado no MongoDB!")
 
         elif msg.topic == "pisid_mazesound_9":
