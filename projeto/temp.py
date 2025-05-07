@@ -6,17 +6,14 @@ from mysql.connector import Error
 import mysql.connector as mariadb
 import sys
 from datetime import datetime
-import paho.mqtt.client as mqtt
-import json
-from pymongo import MongoClient
-import re
-from mysql.connector import Error
-import mysql.connector as mariadb
-import sys
-from datetime import datetime
 
-# Obtem o limite de variação passado como argumento
+# Obtem o limite de variação passado como argumento --> para fechar as portas depois
 sound_threshold = float(sys.argv[1]) if len(sys.argv) > 1 else 10.0  # Valor por defeito: 10.0
+
+'''preliminary
+
+Temos de ver se o algoritmo vai ler cada msg mqtt ou se vamos depois buscar a bd do mongo, nao sei 
+qual e o mais rapido  '''    
 
 '''O gatilho é acionado numa certa sala (o número de gatilhos teria de ser menor que 3), 
  o número de gatilhos nessa sala é incrementado, depois é verificado a quantidade de marsamis 
