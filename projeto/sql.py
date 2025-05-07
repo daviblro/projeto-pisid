@@ -170,8 +170,8 @@ def insert_into_mysql(connection, table, data):
 def on_connect(client, userdata, flags, reason_code):
     if reason_code == 0:
         print("📡 Conexão MQTT bem-sucedida!")
-        client.subscribe("pisid_mazemov_99", qos=1)
-        client.subscribe("pisid_mazesound_99", qos=1)
+        client.subscribe("pisid_mazemov_99", qos=2)
+        client.subscribe("pisid_mazesound_99", qos=2)
         client.mysql_connection = connect_to_mysql()
     else:
         print(f"❌ Erro ao conectar ao MQTT. Código: {reason_code}")

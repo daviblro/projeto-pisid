@@ -55,7 +55,7 @@ def send_mqtt_messages():
                 
             if movements:
                 batch_message = json.dumps({"messages": movements})
-                client.publish("pisid_mazemov_99", batch_message, qos=1)
+                client.publish("pisid_mazemov_99", batch_message, qos=2)
                 print(f"📤 Enviados {len(movements)} movimentos em batch.")
 
                 # Atualiza os documentos como enviados
@@ -75,7 +75,7 @@ def send_mqtt_messages():
 
             if sounds:
                 batch_message = json.dumps({"messages": sounds})
-                client.publish("pisid_mazesound_99", batch_message, qos=1)
+                client.publish("pisid_mazesound_99", batch_message, qos=2)
                 print(f"📤 Enviados {len(sounds)} sons.")
 
                 # Atualiza os documentos como enviados

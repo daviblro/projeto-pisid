@@ -112,8 +112,8 @@ def fix_json_format(msg):
 
 def on_connect(client, userdata, flags, reason_code, properties):
     print("MQTT conectado com código:", reason_code)
-    client.subscribe("pisid_mazemov_9", qos=1)
-    client.subscribe("pisid_mazesound_9", qos=1)
+    client.subscribe("pisid_mazemov_9", qos=2)
+    client.subscribe("pisid_mazesound_9", qos=2)
 
 def on_message(client, userdata, msg):
     try:
@@ -128,9 +128,12 @@ def on_message(client, userdata, msg):
             required_fields = ["Player", "Marsami", "RoomOrigin", "RoomDestiny", "Status"]
             if not validate_required_fields(message, required_fields, "movement"):
                 return
-
+            
+                        # Ignora verificação de configuração se RoomOrigin for 0
             if message["RoomOrigin"] == 0:
-                #mycol_movement.insert_one(message)
+                print("⚠️ RoomOrigin é 0 - ignorada verificação de configuração.")
+                mycol_movement.insert_one(message)
+                print("✅ Movimento com RoomOrigin=0 guardado no MongoDB!")
                 return
 
             dados_cursor = mycol_game.find_one({
@@ -147,6 +150,7 @@ def on_message(client, userdata, msg):
                     "reason": "RoomOrigin sem configuração"
                 })
                 return
+
 
             connected = next(
                 (r["connectedTo"] for r in dados_cursor["roomsConfig"] if r["roomId"] == message["RoomOrigin"]),
