@@ -45,6 +45,8 @@ roomOrigin = 0 #sala 0
 
 #cada vez que chega uma mensagem verificar o n' de marsamis nessa sala
 
+#pisid_ mazeact 9
+
 check_room(roomOrigin)
 
 

@@ -7,7 +7,7 @@ import mysql.connector as mariadb
 import sys
 from datetime import datetime
 
-# Obtem o limite de variação passado como argumento
+# Obtem o limite de variação passado como argumento para ser outlier
 sound_threshold = float(sys.argv[1]) if len(sys.argv) > 1 else 10.0  # Valor por defeito: 10.0
 
 # Funções de validação
