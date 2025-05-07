@@ -15,8 +15,7 @@ client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 client.connect('broker.emqx.io', 1883)
-client.subscribe("pisid_mazemov_99")
-client.subscribe("pisid_mazesound_99")
+client.subscribe("pisid_mazemov_9")
+client.publish("pisid_mazemov_9", "teste")
 
-print("A escutar mensagens recebidas... Pressione Ctrl+C para sair.")
-client.loop_forever()
+

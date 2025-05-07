@@ -131,7 +131,6 @@ def on_message(client, userdata, msg):
             
                         # Ignora verificação de configuração se RoomOrigin for 0
             if message["RoomOrigin"] == 0:
-                print("⚠️ RoomOrigin é 0 - ignorada verificação de configuração.")
                 mycol_movement.insert_one(message)
                 print("✅ Movimento com RoomOrigin=0 guardado no MongoDB!")
                 return

@@ -56,7 +56,7 @@ def send_mqtt_messages():
             if movements:
                 batch_message = json.dumps({"messages": movements})
                 client.publish("pisid_mazemov_99", batch_message, qos=2)
-                print(f"📤 Enviados {len(movements)} movimentos em batch.")
+                print(f"📤 Enviados {len(movements)} movimentos.")
 
                 # Atualiza os documentos como enviados
                 ids = [m["_id"] for m in movements]
