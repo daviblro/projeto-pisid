@@ -137,8 +137,8 @@ def insert_into_mysql(connection, table, data):
 
             '''# Verificar limiares
             ruido_normal = 19.0
-            tolerancia_maxima = 2.5
-            limite_max = ruido_normal + tolerancia_maxima'''
+            tolerancia_maxima = 2.5'''
+            limite_max = normal_noise + variation_level
 
             aviso_threshold = normal_noise + 0.50 * variation_level               # 21.25
             perigo_threshold = normal_noise + 0.75 * variation_level              # 21.375
@@ -176,7 +176,7 @@ def insert_into_mysql(connection, table, data):
                     elif segundos_desde_ultimo > 5:
                         permitir_insercao = True
 
-                if permitir_insercao:
+                if permitir_insercao: 
                     cursor.execute("""
                         INSERT INTO mensagens (Hora, Sensor, Leitura, TipoAlerta, Msg, IDJogo)
                         VALUES (%s, %s, %s, %s, %s, %s)
