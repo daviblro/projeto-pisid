@@ -48,23 +48,21 @@ class _StackedBarChartPageState extends State<StackedBarChartPage> {
     String? ip = prefs.getString('ip');
     String? port = prefs.getString('port');
     String? password = prefs.getString('password');
-    String MensagensURL =
-        "http://${ip!}:${port!}/getMarsamRoom.php";
+    String MensagensURL = "http://${ip!}:${port!}/getMarsamRoom.php";
     var response = await http.post(Uri.parse(MensagensURL),
         body: {'username': username, 'password': password});
-    
+
     if (response.statusCode == 200) {
       var jsonData = json.decode(response.body);
+      print("Resposta bruta do PHP Marsamis: ${response.body}");
       if (jsonData != null && jsonData.length > 0) {
         setState(() {
           //Simulated data fetching and chart data preparation
           for (int sala = 0; sala < 10; sala++) {
             try {
               var roomData = jsonData[sala];
-              oddValues[sala] =
-                  double.parse(roomData["NumeroMarsamisOdd"]);
-              evenValues[sala] =
-                  double.parse(roomData["NumeroMarsamisEven"]);
+              oddValues[sala] = double.parse(roomData["NumeroMarsamisOdd"]);
+              evenValues[sala] = double.parse(roomData["NumeroMarsamisEven"]);
             } catch (e) {
               print('Error processing response: $e');
             }
@@ -74,7 +72,7 @@ class _StackedBarChartPageState extends State<StackedBarChartPage> {
           for (int index = 0; index < oddValues.length; index++) {
             barGroups.add(
               BarChartGroupData(
-                x: index+1,
+                x: index + 1,
                 barRods: [
                   BarChartRodData(
                     y: evenValues[index],

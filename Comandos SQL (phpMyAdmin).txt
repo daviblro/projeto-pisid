@@ -1,0 +1,55 @@
+## 1 - Comandos iniciais da BD
+
+CREATE ROLE 'jogador';
+GRANT SELECT ON pisid_bd9.jogo TO 'jogador';
+GRANT SELECT ON pisid_bd9.utilizador TO 'jogador';
+GRANT EXECUTE ON PROCEDURE pisid_bd9.alterar_jogo TO 'jogador';
+GRANT EXECUTE ON PROCEDURE pisid_bd9.criar_jogo TO 'jogador';
+
+CREATE ROLE 'admin';
+GRANT SELECT, INSERT, DELETE ON pisid_bd9.utilizador TO 'admin';
+GRANT EXECUTE ON PROCEDURE pisid_bd9.criar_utilizador TO 'admin';
+GRANT EXECUTE ON PROCEDURE pisid_bd9.alterar_utilizador TO 'admin';
+GRANT EXECUTE ON PROCEDURE pisid_bd9.remover_utilizador TO 'admin';
+
+CREATE ROLE 'software';
+GRANT SELECT ON pisid_bd9.jogo TO 'software';
+GRANT SELECT ON pisid_bd9.mensagens TO 'software';
+GRANT INSERT ON pisid_bd9.movement TO 'software';
+GRANT INSERT ON pisid_bd9.sound TO 'software';
+GRANT INSERT ON pisid_bd9.mensagens TO 'software';
+
+
+
+## 2 - Criar utilizadores utilizando o SP pelo console
+
+call criar_utilizador('jogador@gmail.com', 'jogador', '111222333', 'jogador', 9, 'jogador123');
+call criar_utilizador('admin@gmail.com', 'admin', '444555666', 'admin', 9, 'admin123');
+call criar_utilizador('software@gmail.com', 'software', '777888999', 'software', 9, 'software123');
+
+
+
+## 3 - Comandos para dar as roles
+
+SET DEFAULT ROLE 'jogador' FOR 'jogador@gmail.com'@'localhost';
+SET DEFAULT ROLE 'admin' FOR 'admin@gmail.com'@'localhost';
+SET DEFAULT ROLE 'software' FOR 'software@gmail.com'@'localhost';
+
+
+
+## 4 - Extra: Exemplos de chamadas aos SP
+
+EMAIL, NOME, TELEMOVEL, TIPO, GRUPO, SENHA
+call criar_utilizador('jogador@gmail.com', 'jogador', '111222333', 'jogador', 9, 'jogador123');
+
+EMAIL, EMAIL NOVO, NOME (novo ou não), TELEMOVEL (novo ou não), GRUPO (novo ou não), SENHA (opcional)
+call alterar_utilizador('jogador@gmail.com', 'teste@gmail.com', 'teste', '111111111', 10, 'teste123');
+
+EMAIL
+call remover_utilizador('teste@gmail.com');
+
+NICK JOGADOR
+call criar_jogo('Hulk');
+
+ID JOGO, NICK JOGADOR
+call alterar_jogo(1, 'Homem de Ferro');

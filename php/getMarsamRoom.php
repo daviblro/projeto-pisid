@@ -10,7 +10,7 @@ if (!$conn) {// Check connection
     die("Connection failed: " . mysqli_connect_error());
 }
 
-$sql = "SELECT * FROM `ocupaçãolabirinto` WHERE `IDJogo` = (SELECT MAX(`IDJogo`) FROM `ocupaçãolabirinto`) ORDER BY `Sala`;";
+$sql = "SELECT * FROM `sala` WHERE `IDJogo_Sala` = (SELECT MAX(`IDJogo_Sala`) FROM `sala`) ORDER BY `IDSala`;";
 
 $result = mysqli_query($conn, $sql);// Execute the query
 $response = array();

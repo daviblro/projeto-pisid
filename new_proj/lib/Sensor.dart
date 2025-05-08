@@ -44,6 +44,7 @@ class _SensorChartPageState extends State<SensorChartPage> {
   double timeLimit = 10;
   var readingNormalNoise;
   var readingTolerationNoise;
+  bool dataLoaded = false; //Flag to check if data is loaded
   Color sensor1Color = Colors.green;
   @override
   Widget build(BuildContext context) {
@@ -52,47 +53,52 @@ class _SensorChartPageState extends State<SensorChartPage> {
         title: const Text('Sensor Chart'),
       ),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0), //Padding around the LineChart
-          child: LineChart(
-            LineChartData(
-              minY: 00, // Limite inferior do eixo Y
-              maxY: readingNormalNoise * 1.5, // Limite superior do eixo Y
-              lineBarsData: [
-                //Data for the lines in the chart
-                LineChartBarData(
-                  spots: sensor1Data, //Data points for the first sensor
-                  isCurved: false, //Curved line
-                  barWidth: 2, //Width of the line
-                  //colors: [Colors.blue], //Color of the line
-                  colors: [sensor1Color], // Usa a cor dinâmica
+        child: dataLoaded
+            ? Padding(
+                padding:
+                    const EdgeInsets.all(16.0), //Padding around the LineChart
+                child: LineChart(
+                  LineChartData(
+                    minY: 00, // Limite inferior do eixo Y
+                    maxY: readingNormalNoise * 1.5, // Limite superior do eixo Y
+                    lineBarsData: [
+                      //Data for the lines in the chart
+                      LineChartBarData(
+                        spots: sensor1Data, //Data points for the first sensor
+                        isCurved: false, //Curved line
+                        barWidth: 2, //Width of the line
+                        //colors: [Colors.blue], //Color of the line
+                        colors: [sensor1Color], // Usa a cor dinâmica
+                      ),
+                      LineChartBarData(
+                        spots: sensor2Data, //Data points for the second sensor
+                        isCurved: false,
+                        barWidth: 2,
+                        colors: [Colors.red],
+                      ),
+                    ],
+                    titlesData: FlTitlesData(
+                      leftTitles:
+                          SideTitles(showTitles: true), //Show left titles
+                      bottomTitles: SideTitles(showTitles: true),
+                      rightTitles:
+                          SideTitles(showTitles: false), //Hide right titles
+                      topTitles: SideTitles(showTitles: false),
+                    ),
+                    gridData: FlGridData(show: true), //show grid in the chart
+                    // Adiciona uma linha horizontal vermelha no valor 25
+                    extraLinesData: ExtraLinesData(horizontalLines: [
+                      HorizontalLine(
+                        y: readingNormalNoise + readingTolerationNoise, //AQUI
+                        color: Colors.blue,
+                        strokeWidth: 2,
+                        dashArray: [10, 5], // Linha pontilhada
+                      ),
+                    ]),
+                  ),
                 ),
-                LineChartBarData(
-                  spots: sensor2Data, //Data points for the second sensor
-                  isCurved: false,
-                  barWidth: 2,
-                  colors: [Colors.red],
-                ),
-              ],
-              titlesData: FlTitlesData(
-                leftTitles: SideTitles(showTitles: true), //Show left titles
-                bottomTitles: SideTitles(showTitles: true),
-                rightTitles: SideTitles(showTitles: false), //Hide right titles
-                topTitles: SideTitles(showTitles: false),
-              ),
-              gridData: FlGridData(show: true), //show grid in the chart
-              // Adiciona uma linha horizontal vermelha no valor 25
-              extraLinesData: ExtraLinesData(horizontalLines: [
-                HorizontalLine(
-                  y: readingNormalNoise + readingTolerationNoise, //AQUI
-                  color: Colors.blue,
-                  strokeWidth: 2,
-                  dashArray: [10, 5], // Linha pontilhada
-                ),
-              ]),
-            ),
-          ),
-        ),
+              )
+            : const CircularProgressIndicator(), // mostra loading se ainda não carregou
       ),
       bottomNavigationBar: BottomAppBar(
         child: ElevatedButton(
@@ -127,17 +133,21 @@ class _SensorChartPageState extends State<SensorChartPage> {
     String? password = prefs.getString('password');
     String? ip = prefs.getString('ip');
     String? port = prefs.getString('port');
+    int? idJogo = prefs.getInt('idJogo');
+    print("idJogo getReadings(): $idJogo");
     for (int id = 1; id <= nSensors; id++) {
       String readingsURL = "http://$ip:$port/getSensors.php";
       var response = await http.post(Uri.parse(readingsURL), body: {
         'username': username,
         'password': password,
-        'sensor': (id).toString()
+        'sensor': (id).toString(),
+        'jogo': (idJogo).toString()
       });
 
       var flaglimit = 0;
       if (response.statusCode == 200) {
         var jsonData = json.decode(response.body);
+        print("Resposta bruta do PHP Sensors: ${response.body}");
         if (jsonData != null && jsonData.length > 0) {
           DateTime readingTime;
           DateTime currentTime;
@@ -146,9 +156,11 @@ class _SensorChartPageState extends State<SensorChartPage> {
           for (var reading in jsonData) {
             readingNormalNoise =
                 double.parse(reading["normalnoise"].toString());
+            print("Normal noise getReadings(): $readingNormalNoise");
             //readingTolerationNoise= double.parse(reading["noisevartoteration"].toString());
             readingTolerationNoise = readingNormalNoise * 0.15;
             readingTime = DateTime.parse(reading["Hour"].toString());
+            print("Hour getReadings(): $readingTime");
             currentTime = DateTime.now()
                 .add(const Duration(hours: 1)); // correct time to GMT+0
             timeDiff = currentTime.difference(readingTime).inSeconds.toDouble();
@@ -156,6 +168,7 @@ class _SensorChartPageState extends State<SensorChartPage> {
             if (timeDiff.isFinite) {
               if (timeDiff >= 0.0) {
                 var value = double.parse(reading["Sound"].toString());
+                print("Sound getReadings(): $value");
                 sensor1Color = Colors.green;
                 //print(readingNormalNoise);
                 //print(readingTolerationNoise);
@@ -186,7 +199,16 @@ class _SensorChartPageState extends State<SensorChartPage> {
           sensor1Color = Colors.green;
           //print ("GREEN");
         }
-        setState(() {});
+        print("readingNormalNoise getReadings(): $readingNormalNoise");
+        print("readingTolerationNoise getReadings(): $readingTolerationNoise");
+        print("dataLoaded getReadings(): $dataLoaded");
+        if (readingNormalNoise != null &&
+            readingTolerationNoise != null &&
+            !dataLoaded) {
+          setState(() {
+            dataLoaded = true;
+          });
+        }
       } else {
         print(
             'Failed to load data: ${response.statusCode}'); // Handle the error

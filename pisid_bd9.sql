@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.2
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 06, 2025 at 02:23 PM
+-- Generation Time: May 08, 2025 at 11:54 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -25,74 +25,88 @@ DELIMITER $$
 --
 -- Procedures
 --
-CREATE DEFINER=`root`@`localhost` PROCEDURE `alterar_jogo` (IN `p_idjogo` INT, IN `p_NickJogador` VARCHAR(50), IN `p_IDUtilizador` INT)   BEGIN
-    -- Verifica se o jogo existe, não está em execução e se o utilizador é o dono do jogo
+CREATE DEFINER=`root`@`localhost` PROCEDURE `alterar_jogo` (IN `p_idjogo` INT, IN `p_NickJogador` VARCHAR(50))   BEGIN
+    DECLARE v_id_utilizador INT;
+    DECLARE v_email VARCHAR(50);
+
+    SET v_email = SUBSTRING_INDEX(USER(), '@', 2);
+
+    SELECT IDUtilizador INTO v_id_utilizador
+    FROM utilizador
+    WHERE Email = v_email;
+
     IF EXISTS (
         SELECT 1 FROM jogo
         WHERE IDJogo = p_idjogo
         AND Estado != 'jogando'
-        AND IDUtilizador = p_IDUtilizador
+        AND IDUtilizador = v_id_utilizador
     ) THEN
-        -- Atualiza o jogo com o novo NickJogador
         UPDATE jogo
         SET NickJogador = p_NickJogador
         WHERE IDJogo = p_idjogo;
     ELSE
-        -- Se o utilizador não for o dono do jogo, envia uma mensagem de erro com detalhes
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Você não tem permissão para alterar este jogo.';
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Você não tem permissão para alterar este jogo.';
     END IF;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `alterar_utilizador` (IN `p_email` VARCHAR(50), IN `p_Telemovel` VARCHAR(12), IN `p_Tipo` ENUM('admin','jogador','software'), IN `p_Grupo` INT, IN `p_Nome` VARCHAR(100), IN `p_IDUtilizador` INT, IN `p_Senha` VARCHAR(100))   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `alterar_utilizador` (IN `p_emailAntigo` VARCHAR(50), IN `p_emailNovo` VARCHAR(50), IN `p_NomeNovo` VARCHAR(100), IN `p_TelemovelNovo` VARCHAR(12), IN `p_GrupoNovo` INT, IN `p_SenhaNovaOpcional` VARCHAR(100))   BEGIN
     DECLARE v_email_antigo VARCHAR(50);
-    DECLARE sql_query VARCHAR(1000); -- Variável para armazenar a consulta dinâmica
+    DECLARE v_IDUtilizador INT;
+    DECLARE sql_query VARCHAR(1000);
 
-    -- Obter o email antigo do utilizador antes de alterá-lo
-    SELECT Email INTO v_email_antigo
+    SET v_email_antigo = p_emailAntigo;
+
+    SELECT IDUtilizador INTO v_IDUtilizador
     FROM utilizador
-    WHERE IDUtilizador = p_IDUtilizador;
+    WHERE Email = v_email_antigo;
 
-    -- Atualizar a tabela 'utilizador' com os novos dados
-    UPDATE utilizador
-    SET Telemovel = p_Telemovel,
-        Tipo = p_Tipo,
-        Grupo = p_Grupo,
-        Nome = p_Nome,
-        Email = p_email
-    WHERE IDUtilizador = p_IDUtilizador;
+    IF p_emailNovo IS NOT NULL AND p_emailNovo != '' AND TRIM(p_emailNovo) != TRIM(v_email_antigo) THEN
+        -- Atualiza dados e email
+        UPDATE utilizador
+        SET Telemovel = p_TelemovelNovo,
+            Grupo = p_GrupoNovo,
+            Nome = p_NomeNovo,
+            Email = p_emailNovo
+        WHERE IDUtilizador = v_IDUtilizador;
 
-    -- Se a senha foi fornecida, alterá-la
-    IF p_Senha IS NOT NULL AND p_Senha != '' THEN
-        -- Preparar a consulta para alterar a senha do utilizador
-        SET sql_query = CONCAT('ALTER USER ''', v_email_antigo, ''' IDENTIFIED BY ''', p_Senha, ''';');
-        -- Executar a consulta dinâmica
+        -- Renomeia o utilizador do sistema
+        SET sql_query = CONCAT('RENAME USER ''', v_email_antigo, '''@''localhost'' TO ''', p_emailNovo, '''@''localhost'';');
+        PREPARE stmt FROM sql_query;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+
+        -- Atualiza email antigo para o novo
+        SET v_email_antigo = p_emailNovo;
+    ELSE
+        -- Só atualiza os restantes dados (sem mexer no email)
+        UPDATE utilizador
+        SET Telemovel = p_TelemovelNovo,
+            Grupo = p_GrupoNovo,
+            Nome = p_NomeNovo
+        WHERE IDUtilizador = v_IDUtilizador;
+    END IF;
+
+    -- Se a senha foi passada, altera também
+    IF p_SenhaNovaOpcional IS NOT NULL AND p_SenhaNovaOpcional != '' THEN
+        SET sql_query = CONCAT('ALTER USER ''', v_email_antigo, '''@''localhost'' IDENTIFIED BY ''', p_SenhaNovaOpcional, ''';');
         PREPARE stmt FROM sql_query;
         EXECUTE stmt;
         DEALLOCATE PREPARE stmt;
     END IF;
-
-    -- Se o email foi fornecido e é diferente do anterior, renomear o usuário
-    IF p_email IS NOT NULL AND p_email != '' AND p_email != v_email_antigo THEN
-        -- Preparar a consulta para renomear o usuário
-        SET sql_query = CONCAT('RENAME USER ''', v_email_antigo, ''' TO ''', p_email, ';');
-        -- Executar a consulta dinâmica
-        PREPARE stmt FROM sql_query;
-        EXECUTE stmt;
-        DEALLOCATE PREPARE stmt;
-    END IF;
-
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `criar_jogo` (IN `p_nick_jogador` VARCHAR(50), IN `p_email_utilizador` VARCHAR(100))   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `criar_jogo` (IN `p_nick_jogador` VARCHAR(50))   BEGIN
     DECLARE v_max_sound INT DEFAULT 100;
     DECLARE v_id_utilizador INT;
+    DECLARE v_email VARCHAR(50);
 
+	SET v_email = SUBSTRING_INDEX(USER(), '@', 2);
+    
     -- Tenta obter o ID do utilizador
     SELECT IDUtilizador INTO v_id_utilizador
     FROM utilizador
-    WHERE Email = p_email_utilizador;
-
+    WHERE Email = v_email;
+        
     -- Se não encontrou nenhum ID, dá erro (mas tratamos o erro com CONTINUE HANDLER)
     IF v_id_utilizador IS NULL THEN
         SIGNAL SQLSTATE '45000'
@@ -119,15 +133,21 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `criar_jogo` (IN `p_nick_jogador` VA
     END IF;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `criar_utilizador` (IN `p_email` VARCHAR(50), IN `p_nome` VARCHAR(100), IN `p_telemovel` VARCHAR(12), IN `p_tipo` ENUM('admin','jogador','software'), IN `p_grupo` INT, IN `p_password` VARCHAR(100))   BEGIN
-    -- Verifica se o utilizador já existe
+CREATE DEFINER=`root`@`localhost` PROCEDURE `criar_utilizador` (IN `p_email` VARCHAR(50), IN `p_nome` VARCHAR(100), IN `p_telemovel` VARCHAR(12), IN `p_tipo` VARCHAR(20), IN `p_grupo` INT, IN `p_password` VARCHAR(100))   BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        -- Em caso de erro, desfaz qualquer mudança (opcional: ROLLBACK)
+        SELECT 'Erro ao criar utilizador.' AS MensagemErro;
+    END;
+
+    -- 1. Verifica se o utilizador já existe
     IF NOT EXISTS (SELECT 1 FROM utilizador WHERE Email = p_email) THEN
 
-        -- Insere na tabela utilizador
+        -- 2. Insere na tabela
         INSERT INTO utilizador (Email, Nome, Telemovel, Tipo, Grupo)
         VALUES (p_email, p_nome, p_telemovel, p_tipo, p_grupo);
 
-        -- Cria o utilizador MySQL
+        -- 3. Cria o utilizador MySQL
         SET @sql_create = CONCAT(
             'CREATE USER ''', p_email, '''@''localhost'' IDENTIFIED BY ''', p_password, ''';'
         );
@@ -135,15 +155,19 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `criar_utilizador` (IN `p_email` VAR
         EXECUTE stmt1;
         DEALLOCATE PREPARE stmt1;
 
-        -- Concede os privilégios diretamente (sem usar role)
-        SET @sql_grant = CONCAT(
-            'GRANT SELECT ON pisid_bd9.* TO ''', p_email, '''@''localhost'';'
-        );
+        -- 4. Concede a role (pré-criada) ao utilizador
+	SET @sql_grant = CONCAT('GRANT ', p_tipo, ' TO ''', p_email, '''@''localhost'';');
         PREPARE stmt2 FROM @sql_grant;
         EXECUTE stmt2;
         DEALLOCATE PREPARE stmt2;
 
-        -- Mensagem de sucesso
+	-- 4.1 Define como role padrão
+	SET @sql_default = CONCAT('SET DEFAULT ROLE ', p_tipo, ' TO ''', p_email, '''@''localhost'';');
+	PREPARE stmt3 FROM @sql_default;
+	EXECUTE stmt3;
+	DEALLOCATE PREPARE stmt3;
+
+        -- 5. Mensagem de sucesso
         SELECT 'Utilizador criado com sucesso!' AS Mensagem;
 
     ELSE
@@ -151,22 +175,22 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `criar_utilizador` (IN `p_email` VAR
     END IF;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `remover_utilizador` (IN `p_IDUtilizador` INT(50))   BEGIN
-    DECLARE v_email VARCHAR(100);
+CREATE DEFINER=`root`@`localhost` PROCEDURE `remover_utilizador` (IN `p_email` VARCHAR(50))   BEGIN
+    DECLARE v_IDUtilizador INT(100);
 
     -- 1. Verifica se o utilizador existe e obtém o email
-    SELECT Email INTO v_email
+    SELECT IDUtilizador INTO v_IDUtilizador
     FROM utilizador
-    WHERE IDUtilizador = p_IDUtilizador;
+    WHERE Email = p_email;
 
     -- 2. Se encontrou o email, continua
-    IF v_email IS NOT NULL THEN
+    IF p_email IS NOT NULL THEN
         -- 3. Remove da tabela pisid.utilizador
-        DELETE FROM utilizador WHERE IDUtilizador = p_IDUtilizador;
+        DELETE FROM utilizador WHERE IDUtilizador = v_IDUtilizador;
 
         -- 4. Remove o utilizador do MySQL
         SET @sql_drop = CONCAT(
-            'DROP USER IF EXISTS ''', v_email, '''@''localhost'''
+            'DROP USER IF EXISTS ''', p_email, '''@''localhost'''
         );
         PREPARE stmt1 FROM @sql_drop;
         EXECUTE stmt1;
@@ -189,8 +213,18 @@ CREATE TABLE `jogo` (
   `DataHoraFim` timestamp NULL DEFAULT NULL,
   `Estado` enum('nao_inicializado','jogando','finalizado') DEFAULT NULL,
   `max_sound` int(11) NOT NULL,
-  `IDUtilizador` int(11) NOT NULL
+  `IDUtilizador` int(11) NOT NULL,
+  `normal_noise` float NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `jogo`
+--
+
+INSERT INTO `jogo` (`IDJogo`, `NickJogador`, `DataHoraInicio`, `DataHoraFim`, `Estado`, `max_sound`, `IDUtilizador`, `normal_noise`) VALUES
+(1, 'mufasa alterado', '2025-05-08 20:34:38', NULL, 'nao_inicializado', 100, 1, 0),
+(2, 'jogoTeste', '2025-05-08 20:34:27', NULL, 'nao_inicializado', 100, 4, 0),
+(3, 'jogo criado pelo SP sem permissao insert', '2025-05-08 20:41:27', NULL, 'nao_inicializado', 100, 1, 0);
 
 --
 -- Triggers `jogo`
@@ -228,7 +262,6 @@ DELIMITER ;
 CREATE TABLE `mensagens` (
   `IDMensagem` int(11) NOT NULL,
   `Hora` timestamp NULL DEFAULT NULL,
-  `Sensor` int(11) DEFAULT NULL,
   `Leitura` decimal(10,2) DEFAULT NULL,
   `TipoAlerta` varchar(50) DEFAULT NULL,
   `Msg` varchar(100) DEFAULT NULL,
@@ -251,6 +284,64 @@ CREATE TABLE `movement` (
   `IDJogo` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Triggers `movement`
+--
+DELIMITER $$
+CREATE TRIGGER `atualizar_ocupacao_movimento` AFTER INSERT ON `movement` FOR EACH ROW BEGIN
+    DECLARE marsami_num INT;
+    SET marsami_num = CAST(NEW.Marsami AS UNSIGNED);
+
+    -- Atualiza sala de origem
+    IF (marsami_num % 2 = 0) THEN
+        UPDATE sala 
+        SET NumeroMarsamisEven = IFNULL(NumeroMarsamisEven, 0) - 1 
+        WHERE IDSala = NEW.RoomOrigin;
+    ELSE
+        UPDATE sala 
+        SET NumeroMarsamisOdd = IFNULL(NumeroMarsamisOdd, 0) - 1 
+        WHERE IDSala = NEW.RoomOrigin;
+    END IF;
+
+    -- Atualiza sala de destino
+    IF (marsami_num % 2 = 0) THEN
+        UPDATE sala 
+        SET NumeroMarsamisEven = IFNULL(NumeroMarsamisEven, 0) + 1 
+        WHERE IDSala = NEW.RoomDestiny;
+    ELSE
+        UPDATE sala 
+        SET NumeroMarsamisOdd = IFNULL(NumeroMarsamisOdd, 0) + 1 
+        WHERE IDSala = NEW.RoomDestiny;
+    END IF;
+
+    -- Verifica a sala de origem
+    IF EXISTS (
+        SELECT 1 FROM sala 
+        WHERE IDSala = NEW.RoomOrigin
+          AND IFNULL(NumeroMarsamisEven,0) = IFNULL(NumeroMarsamisOdd,0)
+    ) THEN
+        INSERT INTO mensagens (IDJogo, Hora, Sensor, Leitura, TipoAlerta, Msg, HoraEscrita)
+        VALUES (NEW.IDJogo, null, NEW.RoomOrigin, 0, 'Alerta Igualdade', 
+                CONCAT('Sala de origem ', NEW.RoomOrigin, ': Número de Marsamis Even e Odd iguais.'), 
+                NOW());
+    END IF;
+
+    -- Verifica a sala de destino
+    IF EXISTS (
+        SELECT 1 FROM sala 
+        WHERE IDSala = NEW.RoomDestiny 
+          AND IFNULL(NumeroMarsamisEven,0) = IFNULL(NumeroMarsamisOdd,0)
+    ) THEN
+        INSERT INTO mensagens (IDJogo, Hora, Sensor, Leitura, TipoAlerta, Msg, HoraEscrita)
+        VALUES (NEW.IDJogo, null, NEW.RoomDestiny, 0, 'Alerta Igualdade', 
+                CONCAT('Sala de destino ', NEW.RoomDestiny, ': Número de Marsamis Even e Odd iguais.'), 
+                NOW());
+    END IF;
+
+END
+$$
+DELIMITER ;
+
 -- --------------------------------------------------------
 
 --
@@ -265,6 +356,45 @@ CREATE TABLE `sala` (
   `Pontos` int(11) DEFAULT NULL,
   `Gatilhos` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `sala`
+--
+
+INSERT INTO `sala` (`IDJogo_Sala`, `IDSala`, `NumeroMarsamisOdd`, `NumeroMarsamisEven`, `Pontos`, `Gatilhos`) VALUES
+(1, 0, 15, 15, 0, 0),
+(2, 0, 15, 15, 0, 0),
+(3, 0, 15, 15, 0, 0),
+(1, 1, 0, 0, 0, 0),
+(2, 1, 0, 0, 0, 0),
+(3, 1, 0, 0, 0, 0),
+(1, 2, 0, 0, 0, 0),
+(2, 2, 0, 0, 0, 0),
+(3, 2, 0, 0, 0, 0),
+(1, 3, 0, 0, 0, 0),
+(2, 3, 0, 0, 0, 0),
+(3, 3, 0, 0, 0, 0),
+(1, 4, 0, 0, 0, 0),
+(2, 4, 0, 0, 0, 0),
+(3, 4, 0, 0, 0, 0),
+(1, 5, 0, 0, 0, 0),
+(2, 5, 0, 0, 0, 0),
+(3, 5, 0, 0, 0, 0),
+(1, 6, 0, 0, 0, 0),
+(2, 6, 0, 0, 0, 0),
+(3, 6, 0, 0, 0, 0),
+(1, 7, 0, 0, 0, 0),
+(2, 7, 0, 0, 0, 0),
+(3, 7, 0, 0, 0, 0),
+(1, 8, 0, 0, 0, 0),
+(2, 8, 0, 0, 0, 0),
+(3, 8, 0, 0, 0, 0),
+(1, 9, 0, 0, 0, 0),
+(2, 9, 0, 0, 0, 0),
+(3, 9, 0, 0, 0, 0),
+(1, 10, 0, 0, 0, 0),
+(2, 10, 0, 0, 0, 0),
+(3, 10, 0, 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -299,9 +429,10 @@ CREATE TABLE `utilizador` (
 --
 
 INSERT INTO `utilizador` (`Telemovel`, `Tipo`, `Grupo`, `Nome`, `IDUtilizador`, `Email`) VALUES
-('111222333', 'jogador', 9, 'teste', 15, 'teste@gmail.com'),
-('111222334', 'jogador', 9, 'ola', 16, 'ola@gmail.com'),
-('123456789', 'jogador', 9, 'oi', 17, 'oi@gmail.com');
+('999888777', 'jogador', 9, 'jogador', 1, 'jogador@gmail.com'),
+('111222333', 'admin', 9, 'admin', 2, 'admin@gmail.com'),
+('000111222', 'jogador', 1000, 'jogadorTeste', 4, 'jogadorTeste@teste.com'),
+('444555666', 'software', 9, 'software', 5, 'software@gmail.com');
 
 --
 -- Indexes for dumped tables
@@ -357,7 +488,7 @@ ALTER TABLE `utilizador`
 -- AUTO_INCREMENT for table `jogo`
 --
 ALTER TABLE `jogo`
-  MODIFY `IDJogo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `IDJogo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `mensagens`
@@ -381,7 +512,7 @@ ALTER TABLE `sound`
 -- AUTO_INCREMENT for table `utilizador`
 --
 ALTER TABLE `utilizador`
-  MODIFY `IDUtilizador` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `IDUtilizador` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Constraints for dumped tables

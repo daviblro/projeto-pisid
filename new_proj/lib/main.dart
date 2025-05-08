@@ -41,11 +41,11 @@ class _LoginPageState extends State<LoginPage> {
   //state management class for the 'LoginPage' widget+
 
   final usernameController = TextEditingController(
-      text: "root"); //controller that manages input for the username
+      text: "teste@gmail.com"); //controller that manages input for the username
   final passwordController = TextEditingController(
-      text: ""); //controller that manages the input for the password
+      text: "teste"); //controller that manages the input for the password
   final ipController = TextEditingController(
-      text: "127.0.0.1"); //controller that manages input for the IP address
+      text: "10.0.2.2"); //controller that manages input for the IP address
   final portController = TextEditingController(
       text: "80"); //controller that manages input for the port
   final bool _isLoading =
@@ -183,6 +183,28 @@ class _LoginPageState extends State<LoginPage> {
         await prefs.setString('password', passwordController.text.trim());
         await prefs.setString('ip', ipController.text.trim());
         await prefs.setString('port', portController.text.trim());
+        String? ip = ipController.text.trim();
+        String? port = portController.text.trim();
+        String gameIdURL = "http://$ip:$port/getIdJogo.php";
+
+        var gameResponse = await http.post(Uri.parse(gameIdURL), body: {
+          'username': usernameController.text.trim(),
+          'password': passwordController.text.trim(),
+        });
+
+        if (gameResponse.statusCode == 200) {
+          var gameData = json.decode(gameResponse.body);
+          if (gameData["success"]) {
+            int idJogo = int.parse(gameData["idJogo"]);
+            await prefs.setInt('idJogo', idJogo);
+            print("ID do jogo salvo: $idJogo");
+          } else {
+            print("Erro ao obter ID do jogo");
+          }
+        } else {
+          print("Erro HTTP ao buscar jogo: ${gameResponse.statusCode}");
+        }
+
         Navigator.pushReplacement(
           //Navigate to 'Mensagens' screen
           context,

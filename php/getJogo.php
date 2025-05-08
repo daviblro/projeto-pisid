@@ -1,8 +1,4 @@
 <?php
-header("Access-Control-Allow-Origin: http://localhost:3000"); // Permite todas as origens
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header('Content-Type: application/json');
 $conn = new mysqli('localhost', 'root', '', 'pisid_bd9');
 
 if ($conn->connect_error || !isset($_GET['idJogo'])) {
