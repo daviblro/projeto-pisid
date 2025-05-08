@@ -1,9 +1,32 @@
 import paho.mqtt.client as mqtt
-import mysql.connector
+import mysql.connector 
+from mysql.connector import Error
 import json
 from datetime import datetime
 
-# ===== Função para conectar ao MySQL =====
+try:
+    connection = mysql.connector.connect(
+        host="194.210.86.10",
+        user="aluno",
+        passwd="aluno",
+        db="maze",
+        connect_timeout=1000,
+        autocommit=True
+    )
+    print("Connected to MySQL ISCTE Server Sound")
+except Error as e:
+    print("❌ Erro ao conectar ao MySQL:", e)
+
+cursor = connection.cursor()
+
+cursor.execute("SELECT noisevartoleration, normalnoise FROM SetupMaze")
+game_config = cursor.fetchone()
+if game_config:
+    variation_level = float(game_config[0])
+    normal_noise = float(game_config[1])
+
+
+# ===== Função para conectar ao MySQL (nossa BD)=====
 def connect_to_mysql():
     try:
         connection = mysql.connector.connect(
@@ -112,15 +135,15 @@ def insert_into_mysql(connection, table, data):
             connection.commit()
             print(f"✅ Dados inseridos na tabela {table} com sucesso!")
 
-            # Verificar limiares
+            '''# Verificar limiares
             ruido_normal = 19.0
             tolerancia_maxima = 2.5
-            limite_max = ruido_normal + tolerancia_maxima
+            limite_max = ruido_normal + tolerancia_maxima'''
 
-            #aviso_threshold = ruido_normal + 0.50 * tolerancia_maxima  # 21.25
-            #perigo_threshold = ruido_normal + 0.75 * tolerancia_maxima  # 21.375
-            aviso_threshold = 19.25 #teste
-            perigo_threshold =19.3 #teste
+            aviso_threshold = normal_noise + 0.50 * variation_level               # 21.25
+            perigo_threshold = normal_noise + 0.75 * variation_level              # 21.375
+            '''aviso_threshold = 19.25 #teste
+            perigo_threshold =19.3 #teste'''
 
             alerta = None
             mensagem = None
