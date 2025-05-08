@@ -10,6 +10,19 @@ from datetime import datetime
 # Obtem o limite de variação passado como argumento para ser outlier
 sound_threshold = float(sys.argv[1]) if len(sys.argv) > 1 else 10.0  # Valor por defeito: 10.0
 
+#Configuração do mapa
+mapMarsami =	{ }
+mapMarsami[0] = [15,15]  #marsamis - 15 even / 15 odd
+for i in range(1,10+1):
+    mapMarsami[i] = [0,0] 
+
+def check_room(room, client, marsami): #tem de ser passado o n' do room
+    mapMarsami[room][marsami%2] += 1
+    print(f"Sala {room}: {mapMarsami[room][0]} even e {mapMarsami[room][1]} odd")
+    if mapMarsami[room][0] == mapMarsami[room][1]:   #n é necessário verificação de sala nula porque é sempre visto uma sala com algum marsami
+        client.publish("pisid_mazeact", f"{{Type: Score, Player:9, Room: {room}}}")
+        print(f'Disparei para a sala {room}! +1 ponto')
+
 # Funções de validação
 def is_valid_datetime(dt_str, message):
     try:
@@ -110,7 +123,7 @@ def fix_json_format(msg):
             })
             return None
 
-def on_connect(client, userdata, flags, reason_code, properties):
+def on_connect(client, userdata, flags, reason_code):
     print("MQTT conectado com código:", reason_code)
     client.subscribe("pisid_mazemov_9", qos=2)
     client.subscribe("pisid_mazesound_9", qos=2)
@@ -131,15 +144,7 @@ def on_message(client, userdata, msg):
             
                         # Ignora verificação de configuração se RoomOrigin for 0
             if message["RoomOrigin"] == 0:
-                payload = {"Type": "Score", "Player":9, "Room": 2}
-                
-
-                result, mid = client.publish("pisid_mazeact 9", json.dumps(payload), qos=2)
-
-                if result == mqtt.MQTT_ERR_SUCCESS:
-                    print("✅✅✅✅✅✅✅✅")
-                else:
-                    print("❌❌❌❌❌❌")
+                check_room(message["RoomDestiny"], client, message["Marsami"])
                 mycol_movement.insert_one(message)
                 print("✅ Movimento com RoomOrigin=0 guardado no MongoDB!")
                 return
@@ -159,7 +164,6 @@ def on_message(client, userdata, msg):
                 })
                 return
 
-
             connected = next(
                 (r["connectedTo"] for r in dados_cursor["roomsConfig"] if r["roomId"] == message["RoomOrigin"]),
                 []
@@ -174,7 +178,8 @@ def on_message(client, userdata, msg):
                 })
             else:
                 mycol_movement.insert_one(message)
-                
+                mapMarsami[message["RoomOrigin"]][message["Marsami"]%2] -= 1
+                check_room(message["RoomDestiny"], client, message["Marsami"])
                 print("✅ Movimento guardado no MongoDB!")
 
         elif msg.topic == "pisid_mazesound_9":
@@ -225,7 +230,7 @@ if connection:
     cursor = connection.cursor()
     insert_game_config(cursor)
 
-client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2)
+client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 client.connect("broker.emqx.io", 1883)

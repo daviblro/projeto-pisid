@@ -6,6 +6,7 @@ from mysql.connector import Error
 import mysql.connector as mariadb
 import sys
 from datetime import datetime
+import time
 
 # Obtem o limite de variação passado como argumento --> para fechar as portas depois
 sound_threshold = float(sys.argv[1]) if len(sys.argv) > 1 else 10.0  # Valor por defeito: 10.0
@@ -40,6 +41,7 @@ for i in range(1,10+1):
 
 print(mapMarsami.keys()) #salas
 print(f'{mapMarsami.values()} + \n') #n' marsamis
+print(mapMarsami)
 
 roomOrigin = 0 #sala 0
 
@@ -49,8 +51,32 @@ roomOrigin = 0 #sala 0
 
 check_room(roomOrigin)
 
+print(1%2)
+print(2%2)
+
+'''
+while True:
+    # MQTT broker details
+    broker = "broker.emqx.io"
+    port = 1883
+    topic = "pisid_mazeact"
+
+    # Create an MQTT client instance
+    client = mqtt.Client()
+
+    # Connect to the broker
+    client.connect(broker, port)
+
+    # Publish the message
+    result, mid = client.publish(topic, "{Type: Score, Player:9, Room: 2}")
+
+    if result == mqtt.MQTT_ERR_SUCCESS:
+        print(f"Message published successfully to topic '{topic}': {{Type: Score, Player:1, Room: 2}}")
+    else:
+        print(f"Failed to publish message to topic '{topic}' (Result Code: {result})")
 
 
+'''
 
 
  

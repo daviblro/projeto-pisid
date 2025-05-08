@@ -25,6 +25,14 @@ client = mqtt.Client(callback_api_version=2)
 client.connect('broker.emqx.io', 1883)
 client.loop_start()
 
+#Configuração do mapa
+mapMarsami =	{ }
+mapMarsami[0] = [15,15]  #marsamis - 15 even / 15 odd
+
+def check_room(room): #tem de ser passado o n' do room
+    if mapMarsami[room][0] == mapMarsami[room][1]:
+        #dispara gatilho -> atuador -> mandar mensagem para mqtttopic atuador
+        print(f'Disparei para a sala {room}! +1 ponto')
 
 # Função para validar datas
 def is_valid_datetime(dt_str):
@@ -39,8 +47,6 @@ def is_valid_sound(sound):
     if (sound > 18 and sound < 30):
         return True
     return False
-
-    
 
 def send_mqtt_messages():
     while True:
