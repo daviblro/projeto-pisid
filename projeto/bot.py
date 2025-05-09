@@ -13,7 +13,7 @@ client.connect("broker.emqx.io", 1883)
 start = datetime.now()
 rest = start
 while(True):
-    client.publish("pisid_mazeact", f"{{Type: Score, Player:9, Room: {6}}}")
+    client.publish("pisid_mazeact", f"{{Type: Score, Player:9, Room: {5}}}")
     now = datetime.now()
     print(f"Comecei às {start} e agora são {now}")
     print(f"Intervalo de {now - rest}")
