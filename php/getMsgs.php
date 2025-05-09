@@ -6,12 +6,12 @@
 
     $conn = mysqli_connect($dbhost,$username,$password,$db);
 	
-	$sql = "
-		SELECT Msg, Leitura, TipoAlerta, Hora, HoraEscrita
-		FROM mensagens
-		WHERE Hora >= now() - interval 60 minute
-		ORDER BY Hora DESC
-	";
+	if (!$conn) {
+		echo json_encode(["success" => false, "error" => mysqli_connect_error()]);
+		exit;
+	}
+	
+	$sql = "CALL get_mensagens()";
 	
 	$response["mensagens"] = array();
 	$result = mysqli_query($conn, $sql);	
@@ -31,6 +31,7 @@
 			}
 		}
 	}
+	mysql_close($conn);
 	header('Content-Type: application/json');
 	// tell browser that its a json data
 	echo json_encode($response);

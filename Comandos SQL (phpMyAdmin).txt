@@ -5,6 +5,10 @@ GRANT SELECT ON pisid_bd9.jogo TO 'jogador';
 GRANT SELECT ON pisid_bd9.utilizador TO 'jogador';
 GRANT EXECUTE ON PROCEDURE pisid_bd9.alterar_jogo TO 'jogador';
 GRANT EXECUTE ON PROCEDURE pisid_bd9.criar_jogo TO 'jogador';
+GRANT EXECUTE ON PROCEDURE pisid_bd9.getIdJogo_IdUtilizador TO 'jogador';
+GRANT EXECUTE ON PROCEDURE pisid_bd9.get_marsami_room TO 'jogador';
+GRANT EXECUTE ON PROCEDURE pisid_bd9.get_mensagens TO 'jogador';
+GRANT EXECUTE ON PROCEDURE pisid_bd9.get_sensores TO 'jogador';
 
 CREATE ROLE 'admin';
 GRANT SELECT, INSERT, DELETE ON pisid_bd9.utilizador TO 'admin';
@@ -14,10 +18,9 @@ GRANT EXECUTE ON PROCEDURE pisid_bd9.remover_utilizador TO 'admin';
 
 CREATE ROLE 'software';
 GRANT SELECT ON pisid_bd9.jogo TO 'software';
-GRANT SELECT ON pisid_bd9.mensagens TO 'software';
+GRANT SELECT, INSERT ON pisid_bd9.mensagens TO 'software';
 GRANT INSERT ON pisid_bd9.movement TO 'software';
 GRANT INSERT ON pisid_bd9.sound TO 'software';
-GRANT INSERT ON pisid_bd9.mensagens TO 'software';
 
 
 

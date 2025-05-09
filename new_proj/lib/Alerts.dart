@@ -49,7 +49,6 @@ class MensagensMainState extends State<MensagensMain> {
   var tableFields = [
     'Msg',
     'Leitura',
-    'Sensor',
     'TipoMensagem',
     'Hora',
     'HoraEscrita'
@@ -174,8 +173,8 @@ class MensagensMainState extends State<MensagensMain> {
     var response = await http.post(Uri.parse(MensagensURL),
         body: {'username': username, 'password': password});
     if (response.statusCode == 200) {
-      var jsonData = json.decode(response.body);
       print("Resposta bruta do PHP Mensagens: ${response.body}");
+      var jsonData = json.decode(response.body);
       var Mensagens = jsonData["mensagens"];
       if (Mensagens != null && Mensagens.length > 0) {
         setState(() {

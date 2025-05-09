@@ -37,9 +37,9 @@ class StackedBarChartPage extends StatefulWidget {
 
 class _StackedBarChartPageState extends State<StackedBarChartPage> {
   List<BarChartGroupData> barGroups = []; //List of bar groups for the chart
-  double maxY = 10.0; //Maximum value on the Y-axis
-  List<double> oddValues = List.filled(10, 0.0); //Initial blue bar values
-  List<double> evenValues = List.filled(10, 0.0); //Initial red bar values
+  double maxY = 15.0; //Maximum value on the Y-axis
+  List<double> oddValues = List.filled(11, 0.0); //Initial blue bar values
+  List<double> evenValues = List.filled(11, 0.0); //Initial red bar values
 
   Future<void> getReadings() async {
     //Fetches readings and updates the chart data
@@ -48,17 +48,17 @@ class _StackedBarChartPageState extends State<StackedBarChartPage> {
     String? ip = prefs.getString('ip');
     String? port = prefs.getString('port');
     String? password = prefs.getString('password');
-    String MensagensURL = "http://${ip!}:${port!}/getMarsamRoom.php";
+    String MensagensURL = "http://${ip!}:${port!}/getMarsamiRoom.php";
     var response = await http.post(Uri.parse(MensagensURL),
         body: {'username': username, 'password': password});
 
     if (response.statusCode == 200) {
-      var jsonData = json.decode(response.body);
       print("Resposta bruta do PHP Marsamis: ${response.body}");
+      var jsonData = json.decode(response.body);
       if (jsonData != null && jsonData.length > 0) {
         setState(() {
           //Simulated data fetching and chart data preparation
-          for (int sala = 0; sala < 10; sala++) {
+          for (int sala = 0; sala < 11; sala++) {
             try {
               var roomData = jsonData[sala];
               oddValues[sala] = double.parse(roomData["NumeroMarsamisOdd"]);
