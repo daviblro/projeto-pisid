@@ -102,7 +102,7 @@ def insert_game_config(cursor):
             variation_level = float(game_config[0])
             normal_noise = float(game_config[1])
             config_json = {
-                "maxSoundLevel": normal_noise,
+                "NormalNoise": normal_noise,
                 "soundVariationLimit": variation_level,
                 "roomsConfig": rooms_config
             }
