@@ -1,44 +1,58 @@
 <?php
+header("Access-Control-Allow-Origin: http://127.0.0.1:3000");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+header('Content-Type: application/json');
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 $dbname = "pisid_bd9";
 $dbhost = "localhost";
 
-// Utilizador interno para SELECT (não o que faz login)
+// Utilizador interno para SELECT
 $internalUser = "root";
-$internalPass = ""; // ajuste conforme sua senha
+$internalPass = ""; // Ajusta para tua password do MySQL
 
-header('Content-Type: application/json');
+// Lê os dados JSON enviados no corpo da requisição
+$input = json_decode(file_get_contents("php://input"), true);
+
+$username = $input['email'] ?? '';
+$password = $input['password'] ?? '';
+
+$response = [
+    "success" => false,
+    "message" => " $username, $password"
+];
+echo json_encode($response);
 
 $response = [
     "success" => false,
     "message" => ""
 ];
 
-// Verifica se os dados foram enviados
-if (!isset($_POST['username']) || !isset($_POST['password'])) {
-    $response["message"] = "Campos de login ausentes.";
-    echo json_encode($response);
+// Verifica se os campos foram enviados
+if (empty($username) || empty($password)) {
+    //$response["message"] = "Campos de login ausentes.";
+    //echo json_encode($response);
     exit;
 }
 
-$username = $_POST['username'];
-$password = $_POST['password'];
-
-// 1. Tenta conectar com as credenciais fornecidas
+// 1. Tenta conectar com as credenciais do utilizador
 $conn = @mysqli_connect($dbhost, $username, $password, $dbname);
 
 if ($conn) {
-    mysqli_close($conn); // Login funcionou, fecha essa conexão
+    mysqli_close($conn); // Login OK, fecha conexão
 
-    // 2. Conecta com o utilizador interno para buscar dados adicionais
+    // 2. Conecta com utilizador interno para buscar info
     $internalConn = @mysqli_connect($dbhost, $internalUser, $internalPass, $dbname);
     
     if (!$internalConn) {
-        $response["message"] = "Erro interno ao obter dados do utilizador.";
-        echo json_encode($response);
+        //$response["message"] = "Erro interno ao obter dados do utilizador.";
+        //echo json_encode($response);
         exit;
     }
 
-    // 3. Busca dados na tabela utilizador
+    // 3. Buscar dados do utilizador pela tabela
     $stmt = $internalConn->prepare("SELECT IDUtilizador, Nome FROM utilizador WHERE Email = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
@@ -63,5 +77,5 @@ if ($conn) {
     $response["message"] = "Login falhou. Verifique email e senha.";
 }
 
-echo json_encode($response);
+//echo json_encode($response);
 ?>
