@@ -7,12 +7,13 @@
 
 	$conn = mysqli_connect($dbhost, $username, $password, $db);// Create connection
 
-	if (!$conn) {// Check connection
-		die("Connection failed: " . mysqli_connect_error());
+	if (!$conn) {
+		echo json_encode(["success" => false, "error" => mysqli_connect_error()]);
+		exit;
 	}
 
 	$sql = "
-		SELECT s.Hour, s.Sound, j.normalnoise
+		SELECT s.Hour, s.Sound, j.normal_noise
 		FROM sound s
 		JOIN jogo j ON j.IDJogo = $idJogo
 		WHERE s.IDJogo = $idJogo

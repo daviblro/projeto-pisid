@@ -41,9 +41,10 @@ class _LoginPageState extends State<LoginPage> {
   //state management class for the 'LoginPage' widget+
 
   final usernameController = TextEditingController(
-      text: "teste@gmail.com"); //controller that manages input for the username
+      text:
+          "jogador@gmail.com"); //controller that manages input for the username
   final passwordController = TextEditingController(
-      text: "teste"); //controller that manages the input for the password
+      text: "jogador123"); //controller that manages the input for the password
   final ipController = TextEditingController(
       text: "10.0.2.2"); //controller that manages input for the IP address
   final portController = TextEditingController(
@@ -185,7 +186,7 @@ class _LoginPageState extends State<LoginPage> {
         await prefs.setString('port', portController.text.trim());
         String? ip = ipController.text.trim();
         String? port = portController.text.trim();
-        String gameIdURL = "http://$ip:$port/getIdJogo.php";
+        String gameIdURL = "http://$ip:$port/getIdJogoIdUtilizador.php";
 
         var gameResponse = await http.post(Uri.parse(gameIdURL), body: {
           'username': usernameController.text.trim(),
@@ -195,11 +196,14 @@ class _LoginPageState extends State<LoginPage> {
         if (gameResponse.statusCode == 200) {
           var gameData = json.decode(gameResponse.body);
           if (gameData["success"]) {
-            int idJogo = int.parse(gameData["idJogo"]);
+            int idJogo = gameData["idJogo"];
+            int idUtilizador = gameData["idUtilizador"];
             await prefs.setInt('idJogo', idJogo);
+            await prefs.setInt('idUtilizador', idUtilizador);
             print("ID do jogo salvo: $idJogo");
+            print("ID do utilizador salvo: $idUtilizador");
           } else {
-            print("Erro ao obter ID do jogo");
+            print("Erro ao obter ID do jogo e ID do utilizador");
           }
         } else {
           print("Erro HTTP ao buscar jogo: ${gameResponse.statusCode}");

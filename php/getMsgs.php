@@ -6,6 +6,11 @@
 
     $conn = mysqli_connect($dbhost,$username,$password,$db);
 	
+	if (!$conn) {
+		echo json_encode(["success" => false, "error" => mysqli_connect_error()]);
+		exit;
+	}
+	
 	$sql = "
 		SELECT Msg, Leitura, TipoAlerta, Hora, HoraEscrita
 		FROM mensagens
