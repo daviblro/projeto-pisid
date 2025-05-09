@@ -1,31 +1,42 @@
-import paho.mqtt.publish as publish
+import paho.mqtt.publish as mqtt
 import json
 import sys
 
-# Argumentos: Type, Player, (RoomOrigin), (RoomDestiny), (Room)
-args = sys.argv[1:]
+def open_door(origin, destiny):
+    print(f"Abrindo porta de {origin} para {destiny}")
 
-if len(args) < 2:
-    print("❌ Argumentos insuficientes")
-    sys.exit(1)
+def close_door(origin, destiny):
+    print(f"Abrindo porta de {origin} para {destiny}")
 
-action_type = args[0]
-player = int(args[1])
-message = {"Type": action_type, "Player": player}
+def open_all_doors():
+    print("Abrindo todas as portas")
 
-if action_type in ["OpenDoor", "CloseDoor"]:
-    message["RoomOrigin"] = int(args[2])
-    message["RoomDestiny"] = int(args[3])
-elif action_type == "Score":
-    message["Room"] = int(args[2])
-elif action_type in ["OpenAllDoor", "CloseAllDoor"]:
-    pass  # Só precisa do tipo e player
-else:
-    print("❌ Tipo inválido")
-    sys.exit(1)
+def close_all_doors():
+    print("Fechando todas as portas")
+
+def get_score():
+    print("Pontuação: 42")
+
+if __name__ == "__main__":
+    command = sys.argv[0]  # tipo da função
+
+    if command == "open_door":
+        origin = sys.argv[2]
+        destiny = sys.argv[3]
+        open_door(origin, destiny)
+    elif command == "close_door":
+        origin = sys.argv[2]
+        destiny = sys.argv[3]
+        close_door(origin, destiny)    
+    elif command == "open_all_doors":
+        open_all_doors()
+    elif command == "close_all_doors":
+        close_all_doors()
+    elif command == "get_score":
+        get_score()
 
 # Envia para o broker MQTT
-publish.single(
+mqtt.single(
     topic="pisid_mazeact",
     payload=json.dumps(message),
     hostname="broker.emqx.io",  # muda se for outro broker
@@ -33,3 +44,4 @@ publish.single(
 )
 
 print("✅ Mensagem enviada:", message)
+
