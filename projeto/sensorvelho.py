@@ -11,23 +11,6 @@ import time
 # Obtem o limite de variação passado como argumento para ser outlier
 sound_threshold = float(sys.argv[1]) if len(sys.argv) > 1 else 10.0  # Valor por defeito: 10.0
 
-#Configuração do mapa
-mapMarsami =	{ }
-mapMarsami[0] = [15,15]  #marsamis - 15 even / 15 odd
-for i in range(1,10+1):
-    mapMarsami[i] = [0,0] 
-gatilho = [0 for i in range(1,11)]
-
-def check_room(room, client, marsami): #tem de ser passado o n' do room
-    if(gatilho[room-1] >= 3):
-        return
-    gatilho[room-1] += 1
-    
-    if (mapMarsami[room][0] == mapMarsami[room][1]) and (mapMarsami[room][0] > 1):   #n é necessário verificação de sala nula porque é sempre visto uma sala com algum marsami
-        client.publish("pisid_mazeact", f"{{Type: Score, Player:9, Room: {room}}}")
-        print(f"Sala {room}: {mapMarsami[room][0]} even e {mapMarsami[room][1]} odd")
-        print(f'Disparei para a sala {room}! +1 ponto')
-
 # Funções de validação
 def is_valid_datetime(dt_str, message):
     try:
@@ -143,13 +126,8 @@ def on_message(client, userdata, msg):
             return
 
         if msg.topic == "pisid_mazemov_9":
-            required_fields = ["Player", "Marsami", "RoomOrigin", "RoomDestiny", "Status"]
-            if not validate_required_fields(message, required_fields, "movement"):
-                return
-            
                         # Ignora verificação de configuração se RoomOrigin for 0
             if message["RoomOrigin"] == 0:
-                check_room(message["RoomDestiny"], client, message["Marsami"])
                 mycol_movement.insert_one(message)
                 print("✅ Movimento com RoomOrigin=0 guardado no MongoDB!")
                 return
@@ -183,10 +161,6 @@ def on_message(client, userdata, msg):
                 })
             else:
                 mycol_movement.insert_one(message)
-                if(mapMarsami[message["RoomOrigin"]][message["Marsami"]%2] > 0):
-                    mapMarsami[message["RoomOrigin"]][message["Marsami"]%2] -= 1
-                mapMarsami[message["RoomDestiny"]][message["Marsami"]%2] += 1
-                check_room(message["RoomDestiny"], client, message["Marsami"])
                 print("✅ Movimento guardado no MongoDB!")
 
         elif msg.topic == "pisid_mazesound_9":
