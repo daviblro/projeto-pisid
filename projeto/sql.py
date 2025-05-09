@@ -36,65 +36,36 @@ def connect_to_mysql():
             database="pisid_bd9"
         )
         print("✅ Conectado ao MySQL com sucesso!")
-        create_tables_if_not_exist(connection)
         return connection
     except mysql.connector.Error as err:
         print(f"❌ Erro ao conectar ao MySQL: {err}")
         return None
 
-# ===== Obter IDJogo do jogo com estado 'jogando' =====
+# ===== Obter IDJogo do jogo com estado 'jogando' E atualizar limites de som =====
 def get_current_game_id(connection):
     try:
         cursor = connection.cursor()
         cursor.execute("SELECT IDJogo FROM jogo WHERE Estado = 'jogando'")
         result = cursor.fetchone()
-        return result[0] if result else None
+        if result:
+            id_jogo = result[0]
+
+            # Atualizar os campos normalnoise e max_sound do jogo ativo
+            max_sound = normal_noise + variation_level
+            cursor.execute("""
+                UPDATE jogo 
+                SET normal_noise = %s, max_sound = %s 
+                WHERE IDJogo = %s
+            """, (normal_noise, max_sound, id_jogo))
+            connection.commit()
+            print(f"🔧 Atualizado jogo {id_jogo}: normalnoise={normal_noise}, max_sound={max_sound}")
+            
+            return id_jogo
+        else:
+            return None
     except Exception as e:
-        print(f"❌ Erro ao obter IDJogo: {e}")
+        print(f"❌ Erro ao obter/atualizar IDJogo: {e}")
         return None
-
-# ===== Criar tabelas se não existirem =====
-def create_tables_if_not_exist(connection):
-    try:
-        cursor = connection.cursor()
-
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS movement (
-                IDMovement INT AUTO_INCREMENT PRIMARY KEY,
-                Marsami VARCHAR(50) NOT NULL,
-                RoomOrigin VARCHAR(50) NOT NULL,
-                RoomDestiny VARCHAR(50) NOT NULL,
-                IDJogo INT NOT NULL,
-                Status VARCHAR(50) NOT NULL
-            )
-        """)
-
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS sound (
-                IDSound INT AUTO_INCREMENT PRIMARY KEY,
-                IDJogo INT NOT NULL,
-                Hour DATETIME NOT NULL,
-                Sound FLOAT NOT NULL
-            )
-        """)
-
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS mensagens (
-                IDMensagem INT AUTO_INCREMENT PRIMARY KEY,
-                HoraEscrita TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                Sensor INT,
-                Leitura DECIMAL(10,2),
-                TipoAlerta VARCHAR(50),
-                Msg VARCHAR(100),
-                IDJogo INT NOT NULL,
-                Hora TimeStamp
-            )
-        """)
-
-        connection.commit()
-        print("🛠️ Tabelas verificadas/criadas com sucesso!")
-    except Exception as e:
-        print(f"❌ Erro ao criar/verificar tabelas: {e}")
 
 # ===== Inserir dados =====
 def insert_into_mysql(connection, table, data):
@@ -158,7 +129,7 @@ def insert_into_mysql(connection, table, data):
             if alerta:
                 cursor.execute("""
                     SELECT TipoAlerta, HoraEscrita FROM mensagens
-                    WHERE Sensor = %s
+                    WHERE IDJogo = %s
                     ORDER BY Hora DESC LIMIT 1
                 """, (id_jogo,))
                 resultado = cursor.fetchone()
@@ -178,9 +149,9 @@ def insert_into_mysql(connection, table, data):
 
                 if permitir_insercao: 
                     cursor.execute("""
-                        INSERT INTO mensagens (Hora, Sensor, Leitura, TipoAlerta, Msg, IDJogo)
-                        VALUES (%s, %s, %s, %s, %s, %s)
-                    """, (data["Hour"], id_jogo, sound_value, alerta, mensagem, id_jogo))
+                        INSERT INTO mensagens (Hora, Leitura, TipoAlerta, Msg, IDJogo)
+                        VALUES (%s, %s, %s, %s, %s)
+                    """, (data["Hour"], sound_value, alerta, mensagem, id_jogo))
                     connection.commit()
                     print(f"🚨 Alerta '{alerta}' registado na tabela mensagens!")
                 else:
