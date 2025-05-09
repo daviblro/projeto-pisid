@@ -10,14 +10,7 @@
 	}
 
 	// Buscar o IDJogo e IDUtilizador do username logado
-	$sql = "
-		SELECT j.IDJogo, u.IDUtilizador
-		FROM jogo j
-		JOIN utilizador u ON j.IDUtilizador = u.IDUtilizador
-		WHERE u.Email = ?
-		ORDER BY j.IDJogo DESC
-		LIMIT 1
-	";
+	$sql = "CALL getIdJogo_IdUtilizador()";
 
 	$stmt = mysqli_prepare($conn, $sql);
 	mysqli_stmt_bind_param($stmt, "s", $username);

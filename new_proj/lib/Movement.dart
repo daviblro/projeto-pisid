@@ -48,7 +48,7 @@ class _StackedBarChartPageState extends State<StackedBarChartPage> {
     String? ip = prefs.getString('ip');
     String? port = prefs.getString('port');
     String? password = prefs.getString('password');
-    String MensagensURL = "http://${ip!}:${port!}/getMarsamRoom.php";
+    String MensagensURL = "http://${ip!}:${port!}/getMarsamiRoom.php";
     var response = await http.post(Uri.parse(MensagensURL),
         body: {'username': username, 'password': password});
 

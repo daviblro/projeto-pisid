@@ -3,23 +3,18 @@
 	$dbhost = "localhost"; 
 	$username = $_POST["username"];
 	$password = $_POST["password"];
-	$idJogo = $_POST["jogo"];
 
 	$conn = mysqli_connect($dbhost, $username, $password, $db);// Create connection
 
-	if (!$conn) {
-		echo json_encode(["success" => false, "error" => mysqli_connect_error()]);
-		exit;
+	if (!$conn) {// Check connection
+		die("Connection failed: " . mysqli_connect_error());
 	}
 
-	$sql = "CALL get_sensores(?)";
-	$stmt = mysqli_prepare($conn, $sql);
-	mysqli_stmt_bind_param($stmt, "i", $idJogo);
-	mysqli_stmt_execute($stmt);
-	$result = mysqli_stmt_get_result($stmt);
+	$sql = "CALL get_marsami_room()";
+	$result = mysqli_query($conn, $sql);// Execute the query
 	
 	$response = array();
-	if ($result && mysqli_num_rows($result) > 0) {// Check if any row is returned
+	if (mysqli_num_rows($result) > 0) {// Check if any row is returned
 		 while ($row = mysqli_fetch_assoc($result)) {//Iterates trough the result and puts entries in response
 			array_push($response, $row);
 		}
