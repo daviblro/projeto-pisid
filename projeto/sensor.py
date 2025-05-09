@@ -237,8 +237,9 @@ if connection:
     cursor = connection.cursor()
     insert_game_config(cursor)
 
-client = mqtt.Client()
+
+client = mqtt.Client(clean_session=True)  # Limpa sessão anterior
 client.on_connect = on_connect
 client.on_message = on_message
-client.connect("broker.emqx.io", 1883)
+client.connect("broker.emqx.io", 1883, keepalive=30)  # Ping a cada 30s
 client.loop_forever()
