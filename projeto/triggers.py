@@ -3,6 +3,7 @@ import json
 import sys
 
 def open_door(origin, destiny):
+    message
     print(f"Abrindo porta de {origin} para {destiny}")
 
 def close_door(origin, destiny):
