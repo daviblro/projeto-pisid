@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Novo Jogo</title>
+  <link rel="stylesheet">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #d3d3d3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      width: 300px;
+      
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-left: -10px;
+    }
+
+    button {
+      background-color: black;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      
+    }
+
+    button:hover {
+      background-color: #333;
+    }
+
+    .actions {
+      margin-top: 20px;
+    }
+  </style>
+  <script>
+    async function criarJogo(event) {
+      event.preventDefault(); // Prevenir o envio padrão do formulário
+
+      const nome = document.getElementById('nome').value;
+      const id = document.getElementById('id').value;
+
+      if (!nome || !id) {
+        alert('Por favor, preencha todos os campos.');
+        return;
+      }
+
+      // Chamar o PHP para criar o jogo
+      try {
+        const response = await fetch('http://localhost/criarJogo.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ nome, id }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao criar o jogo.');
+        }
+
+        const result = await response.json();
+        alert(result.message || 'Jogo criado com sucesso!');
+        window.location.href = 'HomePage.html'; // Redirecionar após sucesso
+      } catch (error) {
+        console.error('Erro ao criar o jogo:', error);
+        alert('Erro ao criar o jogo.');
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Novo Jogo</h1>
+    <form onsubmit="criarJogo(event)">
+      <label for="nome">Nick do Jogador:</label>
+      <input type="text" id="nome" name="nome" placeholder="Insira o Nick do jogador" required>
+      <label for="id">ID Jogo:</label>
+      <input type="text" id="id" name="id" placeholder="Insira o ID do jogo" required>
+      <button type="submit">Criar</button>
+    </form>
+    <div class="actions">
+      <button onclick="window.location.href='HomePage.html'">Voltar</button>
+    </div>
+  </div>
+</body>
+</html>
