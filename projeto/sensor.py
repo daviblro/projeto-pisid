@@ -22,14 +22,11 @@ def check_room(room, client, marsami): #tem de ser passado o n' do room
     if(gatilho[room-1] >= 3):
         return
     gatilho[room-1] += 1
-    rest = datetime.now()
-    mapMarsami[room][marsami%2] += 1
-    print(f"Sala {room}: {mapMarsami[room][0]} even e {mapMarsami[room][1]} odd")
-    if (mapMarsami[room][0] == mapMarsami[room][1]) and (mapMarsami[room][0] != 1):   #n é necessário verificação de sala nula porque é sempre visto uma sala com algum marsami
+    print(mapMarsami)
+    #print(f"Sala {room}: {mapMarsami[room][0]} even e {mapMarsami[room][1]} odd")
+    if (mapMarsami[room][0] == mapMarsami[room][1]) and (mapMarsami[room][0] != 1) and (mapMarsami[room][0] != 0):   #n é necessário verificação de sala nula porque é sempre visto uma sala com algum marsami
         client.publish("pisid_mazeact", f"{{Type: Score, Player:9, Room: {room}}}")
         print(f'Disparei para a sala {room}! +1 ponto')
-        now = datetime.now()
-        print(f"Intervalo de {now - rest}")
 
 # Funções de validação
 def is_valid_datetime(dt_str, message):
@@ -186,7 +183,9 @@ def on_message(client, userdata, msg):
                 })
             else:
                 mycol_movement.insert_one(message)
-                mapMarsami[message["RoomOrigin"]][message["Marsami"]%2] -= 1
+                if(mapMarsami[message["RoomOrigin"]][message["Marsami"]%2] > 0):
+                    mapMarsami[message["RoomOrigin"]][message["Marsami"]%2] -= 1
+                mapMarsami[message["RoomDestiny"]][message["Marsami"]%2] += 1
                 check_room(message["RoomDestiny"], client, message["Marsami"])
                 print("✅ Movimento guardado no MongoDB!")
 
