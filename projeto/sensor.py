@@ -6,6 +6,7 @@ from mysql.connector import Error
 import mysql.connector as mariadb
 import sys
 from datetime import datetime
+import time
 
 # Obtem o limite de variação passado como argumento para ser outlier
 sound_threshold = float(sys.argv[1]) if len(sys.argv) > 1 else 10.0  # Valor por defeito: 10.0
@@ -17,11 +18,15 @@ for i in range(1,10+1):
     mapMarsami[i] = [0,0] 
 
 def check_room(room, client, marsami): #tem de ser passado o n' do room
+    
+    rest = datetime.now()
     mapMarsami[room][marsami%2] += 1
     print(f"Sala {room}: {mapMarsami[room][0]} even e {mapMarsami[room][1]} odd")
     if mapMarsami[room][0] == mapMarsami[room][1]:   #n é necessário verificação de sala nula porque é sempre visto uma sala com algum marsami
         client.publish("pisid_mazeact", f"{{Type: Score, Player:9, Room: {room}}}")
         print(f'Disparei para a sala {room}! +1 ponto')
+        now = datetime.now()
+        print(f"Intervalo de {now - rest}")
 
 # Funções de validação
 def is_valid_datetime(dt_str, message):

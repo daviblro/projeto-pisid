@@ -1,0 +1,33 @@
+
+SetUp Complete: Number Rooms:10 / Number Marsamis:30 /  Player:9
+{Player:9, Marsami:1, RoomOrigin:0, RoomDestiny: 8, Status:1} topic pisid_mazemov_9
+{Player:9, Marsami:2, RoomOrigin:0, RoomDestiny: 6, Status:1} topic pisid_mazemov_9
+{Player:9, Marsami:3, RoomOrigin:0, RoomDestiny: 2, Status:1} topic pisid_mazemov_9
+{Player:9, Marsami:4, RoomOrigin:0, RoomDestiny: 5, Status:1} topic pisid_mazemov_9
+{Player:9, Marsami:5, RoomOrigin:0, RoomDestiny: 3, Status:1} topic pisid_mazemov_9
+{Player:9, Marsami:6, RoomOrigin:0, RoomDestiny: 6, Status:1} topic pisid_mazemov_9
+{Player:9, Marsami:7, RoomOrigin:0, RoomDestiny: 3, Status:1} topic pisid_mazemov_9
+{Player:9, Marsami:8, RoomOrigin:0, RoomDestiny: 1, Status:1} topic pisid_mazemov_9
+{Player:9, Marsami:9, RoomOrigin:0, RoomDestiny: 3, Status:1} topic pisid_mazemov_9
+{Player:9, Marsami:10, RoomOrigin:0, RoomDestiny: 1, Status:1} topic pisid_mazemov_9
+{Player:9, Marsami:11, RoomOrigin:0, RoomDestiny: 7, Status:1} topic pisid_mazemov_9
+{Player:9, Marsami:12, RoomOrigin:0, RoomDestiny: 3, Status:1} topic pisid_mazemov_9
+{Player:9, Marsami:13, RoomOrigin:0, RoomDestiny: 6, Status:1} topic pisid_mazemov_9
+{Player:9, Marsami:14, RoomOrigin:0, RoomDestiny: 7, Status:1} topic pisid_mazemov_9
+{Player:9, Marsami:15, RoomOrigin:0, RoomDestiny: 5, Status:1} topic pisid_mazemov_9
+{Player:9, Marsami:16, RoomOrigin:0, RoomDestiny: 8, Status:1} topic pisid_mazemov_9
+Trigger: 6
+Score Decreased
+{Player:9, Marsami:17, RoomOrigin:0, RoomDestiny: 6, Status:1} topic pisid_mazemov_9
+Trigger: 6
+Score Increased
+Trigger: 6
+Score Increased
+Trigger: 6
+Score Increased
+Trigger: 6
+Score Increased
+Trigger: 6
+Score Increased
+Trigger: 6
+Score Increased
