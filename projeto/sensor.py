@@ -16,9 +16,12 @@ mapMarsami =	{ }
 mapMarsami[0] = [15,15]  #marsamis - 15 even / 15 odd
 for i in range(1,10+1):
     mapMarsami[i] = [0,0] 
+gatilho = [0 for i in range(1,11)]
 
 def check_room(room, client, marsami): #tem de ser passado o n' do room
-    
+    if(gatilho[room-1] >= 3):
+        return
+    gatilho[room-1] += 1
     rest = datetime.now()
     mapMarsami[room][marsami%2] += 1
     print(f"Sala {room}: {mapMarsami[room][0]} even e {mapMarsami[room][1]} odd")

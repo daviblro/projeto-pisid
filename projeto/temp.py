@@ -53,6 +53,8 @@ check_room(roomOrigin)
 
 print(1%2)
 print(2%2)
+gatilho = [0 for i in range(1,11)]
+print(gatilho)
 
 '''
 while True:
