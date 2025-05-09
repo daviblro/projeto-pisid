@@ -146,8 +146,8 @@ class _SensorChartPageState extends State<SensorChartPage> {
 
       var flaglimit = 0;
       if (response.statusCode == 200) {
-        var jsonData = json.decode(response.body);
         print("Resposta bruta do PHP Sensors: ${response.body}");
+        var jsonData = json.decode(response.body);
         if (jsonData != null && jsonData.length > 0) {
           DateTime readingTime;
           DateTime currentTime;
