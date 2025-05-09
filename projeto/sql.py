@@ -111,8 +111,8 @@ def insert_into_mysql(connection, table, data):
             tolerancia_maxima = 2.5'''
             limite_max = normal_noise + variation_level
 
-            aviso_threshold = normal_noise + 0.50 * variation_level               # 21.25
-            perigo_threshold = normal_noise + 0.75 * variation_level              # 21.375
+            aviso_threshold = normal_noise + 0.75 * variation_level               # 20.875
+            perigo_threshold = normal_noise + 0.90 * variation_level              # 21.25
             '''aviso_threshold = 19.25 #teste
             perigo_threshold =19.3 #teste'''
 
