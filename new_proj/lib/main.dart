@@ -157,7 +157,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       //sending a POST request with the username and password
       response = await http.post(Uri.parse(loginURL), body: {
-        'username': usernameController.text.trim(), //get the username text
+        'email': usernameController.text.trim(), //get the username text
         'password': passwordController.text.trim() //get password text
       });
       print("Resposta do servidor: ${response.body}");
@@ -176,6 +176,7 @@ class _LoginPageState extends State<LoginPage> {
     }
     if (response.statusCode == 200) {
       //if the response is successful
+      print("Resposta bruta do PHP Login: ${response.body}");
       var jsonData = json.decode(response.body);
       if (jsonData["success"]) {
         //if login is successful then stores credentials in SharedPreferences
@@ -194,6 +195,8 @@ class _LoginPageState extends State<LoginPage> {
         });
 
         if (gameResponse.statusCode == 200) {
+          print(
+              "Resposta bruta do PHP getIdJogoIdUtilizador: ${gameResponse.body}");
           var gameData = json.decode(gameResponse.body);
           if (gameData["success"]) {
             int idJogo = gameData["idJogo"];

@@ -62,7 +62,7 @@
 
     .actions {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       margin-top: 20px;
     }
 
@@ -142,43 +142,6 @@
         alert('Erro ao alterar os dados do jogador.');
       }
     }
-
-    // Função chamada quando o botão "Iniciar" é pressionado
-    async function iniciarJogo() {
-      const jogoSelecionado = localStorage.getItem('jogoSelecionado');
-
-      if (!jogoSelecionado) {
-        alert('Nenhum jogo selecionado. Redirecionando para a seleção de jogos.');
-        window.location.href = 'HomePage.html';
-        return;
-      }
-
-      // Chamar o PHP para iniciar o jogo
-      try {
-        const email = localStorage.getItem('email');
-        const password = localStorage.getItem('password');
-
-        const response = await fetch('http://localhost/iniciarJogo.php', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ idJogo: jogoSelecionado, email, password }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Erro ao iniciar o jogo.');
-        }
-
-        const result = await response.json();
-        alert(result.message || 'Jogo iniciado com sucesso!');
-        // Redireciona para a página inicial
-        window.location.href = 'HomePage.html';
-      } catch (error) {
-        console.error('Erro ao iniciar o jogo:', error);
-        alert('Erro ao iniciar o jogo.');
-      }
-    }
   </script>
 </head>
 
@@ -192,7 +155,6 @@
     </form>
     <div class="actions">
       <button onclick="window.location.href='HomePage.html'">Voltar</button>
-      <button type="button" onclick="iniciarJogo()">Iniciar</button>
     </div>
   </div>
 </body>

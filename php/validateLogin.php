@@ -16,6 +16,11 @@ $internalPass = ""; // Ajusta para tua password do MySQL
 // Lê os dados JSON enviados no corpo da requisição
 $input = json_decode(file_get_contents("php://input"), true);
 
+// Se não veio nada via JSON, tenta via $_POST (para chamadas via Android/Flutter)
+if (!$input) {
+    $input = $_POST;
+}
+
 $username = $input['email'] ?? '';
 $password = $input['password'] ?? '';
 
