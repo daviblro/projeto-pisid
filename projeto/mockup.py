@@ -35,16 +35,17 @@ client.on_message = on_message
 client.connect('broker.emqx.io', 1883)
 client.subscribe("pisid_mazemov_9")
 client.publish("pisid_mazemov_9", "teste")
-import json
-while True:
-    room = int(random.random()* 2 + 1) 
-    marsami = int(random.random()* 4) 
-    roomOrigin = mapSala[marsami]
-    if roomOrigin != room:
-        mapMarsami[room][marsami%2] += 1
-        mapMarsami[roomOrigin][marsami%2] -= 1
-        message = {"Player":"9", "Marsami":"2", "RoomOrigin": "roomOrigin", "RoomDestiny": "room", "Status":"1"} 
-        client.publish("pisid_mazemov_99", json.dumps(message))
-        print(mapMarsami)
-    time.sleep(2)
+# import json
+# rooms = []
+# while True:
+#     room = int(random.random()* 2 + 1) 
+#     marsami = int(random.random()* 4) 
+#     roomOrigin = mapSala[marsami]
+#     if roomOrigin != room:
+#         mapMarsami[room][marsami%2] += 1
+#         mapMarsami[roomOrigin][marsami%2] -= 1
+#         message = {"Player":"9", "Marsami":"2", "RoomOrigin": "roomOrigin", "RoomDestiny": "room", "Status":"1"} 
+#         client.publish("pisid_mazemov_99", json.dumps(message))
+#         print(mapMarsami)
+#     time.sleep(2)
 
