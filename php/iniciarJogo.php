@@ -7,18 +7,18 @@ $data = json_decode(file_get_contents("php://input"), true);
 
 // Extrai o ID do jogo do corpo da requisição
 $idJogo = $data['idJogo'] ?? null;
-$email = $data['email'] ?? '';
+$username = $data['username'] ?? '';
 $password = $data['password'] ?? '';
 
 // Valida os parâmetros
-if (!$email || !$password || !$idJogo) {
+if (!$username || !$password || !$idJogo) {
 	http_response_code(400);
 	echo json_encode(["success" => false, "message" => "Parâmetros incompletos."]);
 	exit;
 }
 
 // Conecta ao banco de dados usando as credenciais do utilizador
-$conn = new mysqli('localhost', $email, $password, 'pisid_bd9');
+$conn = new mysqli('localhost', $username, $password, 'pisid_bd9');
 if ($conn->connect_error) {
 	http_response_code(401);
 	echo json_encode(["success" => false, "message" => "Erro de autenticação: " . $conn->connect_error]);

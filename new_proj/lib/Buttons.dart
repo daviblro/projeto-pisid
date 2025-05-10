@@ -81,14 +81,21 @@ class _StoredProceduresPageState extends State<StoredProceduresPage> {
               const SizedBox(height: 30), //Spacer
               //Elevated buttons for different actions
               ElevatedButton(
-                onPressed: () =>
-                    _showArgumentDialog('IniciarJogo.php', [], [], context),
+                onPressed: () async {
+                  var result = await _getDataWithArgs(
+                      'iniciarJogo.php', [], [], context);
+
+                  // Aqui você pode ajustar o valor esperado de sucesso, como "OK" ou algo específico
+                  if (result != null && result["success"] == true) {
+                    await _callSilentScript('iniciarExecutaveis.php');
+                  }
+                },
                 child: const Text('Iniciar jogo'),
               ),
               ElevatedButton(
                 onPressed: () => _showArgumentDialog(
                     'abrirPorta.php',
-                    ["Sala de Origem", "Sala de Destino"],
+                    ["SalaOrigemController", "SalaDestinoController"],
                     [SalaOrigemController, SalaDestinoController],
                     context),
                 child: const Text('Abrir porta'),
@@ -96,7 +103,7 @@ class _StoredProceduresPageState extends State<StoredProceduresPage> {
               ElevatedButton(
                 onPressed: () => _showArgumentDialog(
                     'fecharPorta.php',
-                    ["Sala de Origem", "Sala de Destino"],
+                    ["SalaOrigemController", "SalaDestinoController"],
                     [SalaOrigemController, SalaDestinoController],
                     context),
                 child: const Text('Fechar porta'),
@@ -113,7 +120,7 @@ class _StoredProceduresPageState extends State<StoredProceduresPage> {
               ),
               ElevatedButton(
                 onPressed: () => _showArgumentDialog('triggerSala.php',
-                    ["Sala:"], [SalaOrigemController], context),
+                    ["SalaOrigemController"], [SalaOrigemController], context),
                 child: const Text('Trigger uma sala'),
               ),
               ElevatedButton(
@@ -141,7 +148,7 @@ class _StoredProceduresPageState extends State<StoredProceduresPage> {
     );
   }
 
-  Future<void> _showArgumentDialog(String script, List<String> argLabels,
+  Future<dynamic> _showArgumentDialog(String script, List<String> argLabels,
       List<TextEditingController> controllers, BuildContext context) async {
     if (argLabels.isEmpty) {
       return _getDataWithArgs(script, [], [],
@@ -183,7 +190,7 @@ class _StoredProceduresPageState extends State<StoredProceduresPage> {
     );
   }
 
-  Future<void> _getDataWithArgs(String script, List<String> argLabels,
+  Future<dynamic> _getDataWithArgs(String script, List<String> argLabels,
       List<TextEditingController> controllers, BuildContext context) async {
     //Method to fetch data with arguments
     final prefs = await SharedPreferences.getInstance();
@@ -191,25 +198,68 @@ class _StoredProceduresPageState extends State<StoredProceduresPage> {
     String? password = prefs.getString('password');
     String? ip = prefs.getString('ip');
     String? port = prefs.getString('port');
+    int? idJogo = prefs.getInt('idJogo');
 
     String readingsURL = "http://${ip!}:${port!}/$script";
     Map<String, String?> body = {
       'username': username,
       'password': password,
     };
+
+    if (script == "iniciarJogo.php" && idJogo != null) {
+      body['idJogo'] = idJogo.toString();
+    }
+
     for (int index = 0; index < argLabels.length; index++) {
       String value = "null";
       if (controllers[index].text != "") {
-        value = '"${controllers[index].text}"';
+        value = controllers[index].text;
       }
       body[argLabels[index]] = value;
       controllers[index].text = ""; //Clears the controller
     }
     var response = await http.post(Uri.parse(readingsURL), body: body);
     if (response.statusCode == 200) {
+      print("Resposta bruta do PHP Buttons: ${response.body}");
       var decoded = json.decode(response.body);
-      _showValueDialog(context, decoded.toString());
-      print("sucesss");
+      if (decoded["total_score"] != null) {
+        _showValueDialog(
+            context, "Pontuação total: ${decoded["total_score"]} pontos");
+      } else if (decoded["scores"] != null) {
+        // Caso esteja testando com o formato antigo também
+        String scoresText = "";
+        for (var s in decoded["scores"]) {
+          scoresText += "Sala ${s["IDSala"]}: ${s["Pontos"]} pontos\n";
+        }
+        _showValueDialog(context, scoresText);
+      } else {
+        _showValueDialog(context, decoded.toString());
+      }
+      print("success");
+      return decoded; // <-- Retorna a resposta
+    } else {
+      return null;
+    }
+  }
+
+  Future<void> _callSilentScript(String script) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? username = prefs.getString('username');
+    String? password = prefs.getString('password');
+    String? ip = prefs.getString('ip');
+    String? port = prefs.getString('port');
+
+    String url = "http://${ip!}:${port!}/$script";
+    Map<String, String?> body = {
+      'username': username,
+      'password': password,
+    };
+
+    var response = await http.post(Uri.parse(url), body: body);
+    if (response.statusCode == 200) {
+      print("Script $script executado com sucesso.");
+    } else {
+      print("Erro ao executar $script: ${response.statusCode}");
     }
   }
 }
