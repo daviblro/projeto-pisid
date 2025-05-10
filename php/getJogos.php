@@ -1,28 +1,42 @@
 <?php
-$host = 'localhost';
-$db = 'pisid_bd9';
-$user = 'root';
-$pass = ''; // ou sua senha do root
-$conn = new mysqli($host, $user, $pass, $db);
+header("Access-Control-Allow-Origin: *");
+header('Content-Type: application/json');
 
-if ($conn->connect_error) {
-    echo json_encode([]);
+// Lê os dados JSON do corpo
+$data = json_decode(file_get_contents("php://input"), true);
+
+$email = $data['email'] ?? '';
+$password = $data['password'] ?? '';
+
+if (!$email || !$password) {
+    http_response_code(400);
+    echo json_encode(["success" => false, "message" => "Credenciais não fornecidas."]);
     exit;
 }
 
-$idUtilizador = $_GET['idUtilizador'];
-
-$stmt = $conn->prepare("SELECT IDJogo, NickJogador FROM jogo WHERE IDUtilizador = ?");
-$stmt->bind_param("i", $idUtilizador);
-$stmt->execute();
-$result = $stmt->get_result();
-
-$jogos = [];
-while ($row = $result->fetch_assoc()) {
-    $jogos[] = $row;
+$conn = new mysqli('localhost', $email, $password, 'pisid_bd9');
+if ($conn->connect_error) {
+    http_response_code(401);
+    echo json_encode(["success" => false, "message" => "Erro de autenticação."]);
+    exit;
 }
 
-echo json_encode($jogos);
+try {
+    $stmt = $conn->prepare("CALL get_jogos()");
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-$stmt->close();
+    $jogos = [];
+    while ($row = $result->fetch_assoc()) {
+        $jogos[] = $row;
+    }
+
+    echo json_encode(["success" => true, "jogos" => $jogos]);
+
+    $stmt->close();
+} catch (mysqli_sql_exception $e) {
+    http_response_code(500);
+    echo json_encode(["success" => false, "message" => "Erro ao buscar jogos: " . $e->getMessage()]);
+}
+
 $conn->close();

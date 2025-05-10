@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
-  <link rel="stylesheet">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -62,8 +62,9 @@
     }
   </style>
   <script>
+
     async function validarLogin(event) {
-      event.preventDefault(); // Prevenir o envio padrão do formulário
+      event.preventDefault(); // Prevenir envio padrão do formulário
 
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
@@ -74,7 +75,6 @@
       }
 
       try {
-        // Chamar o PHP para validar o login
         const response = await fetch('http://localhost/validateLogin.php', {
           method: 'POST',
           headers: {
@@ -90,11 +90,12 @@
         const result = await response.json();
 
         if (result.success) {
-          // Armazenar o ID do utilizador no localStorage e redirecionar
-          localStorage.setItem('idUtilizador', result.idUtilizador);
+          localStorage.setItem('idUtilizador', result.user.id);
+          localStorage.setItem('email', email);
+          localStorage.setItem('password', password);
           window.location.href = 'HomePage.html';
         } else {
-          alert('Email ou senha inválidos. Tente novamente.');
+          alert(result.message || 'Email ou senha inválidos.');
         }
       } catch (error) {
         console.error('Erro ao validar o login:', error);
@@ -103,6 +104,7 @@
     }
   </script>
 </head>
+
 <body>
   <div class="container">
     <h1>Log in</h1>
@@ -115,4 +117,5 @@
     </form>
   </div>
 </body>
+
 </html>

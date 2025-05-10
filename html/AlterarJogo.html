@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -68,19 +69,30 @@
     .actions button {
       width: 45%;
     }
-</style>
+  </style>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       const jogoSelecionado = localStorage.getItem('jogoSelecionado');
+      const nickJogador = localStorage.getItem('NickJogador');
+      const email = localStorage.getItem('email');
+      const password = localStorage.getItem('password');
       if (jogoSelecionado) {
-        document.getElementById('titulo-jogo').textContent = jogoSelecionado;
+        document.getElementById('nick-jogador').textContent = `Nick Jogador Atual: ${nickJogador}`;
 
         // Chamar o PHP para buscar os dados do jogador
         try {
-          const response = await fetch(`http://localhost/getJogo.php?idJogo=${jogoSelecionado}`);
+          const response = await fetch('http://localhost/getJogo.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ idJogo: jogoSelecionado, email, password }),
+          });
+
           if (!response.ok) {
             throw new Error('Erro ao buscar os dados do jogador.');
           }
+
           const data = await response.json();
           document.getElementById('nome').value = data.nick || '';
         } catch (error) {
@@ -106,13 +118,17 @@
 
       // Chamar o PHP para alterar os dados do jogador
       try {
+        const email = localStorage.getItem('email');
+        const password = localStorage.getItem('password');
+
         const response = await fetch('http://localhost/alterarJogo.php', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ idJogo: jogoSelecionado, nick }),
+          body: JSON.stringify({ idJogo: jogoSelecionado, nick, email, password }),
         });
+
 
         if (!response.ok) {
           throw new Error('Erro ao alterar os dados do jogador.');
@@ -120,26 +136,65 @@
 
         const result = await response.json();
         alert(result.message || 'Dados alterados com sucesso!');
+        window.location.href = 'HomePage.html'; // Redirecionar após sucesso
       } catch (error) {
         console.error('Erro ao alterar os dados do jogador:', error);
         alert('Erro ao alterar os dados do jogador.');
       }
     }
+
+    // Função chamada quando o botão "Iniciar" é pressionado
+    async function iniciarJogo() {
+      const jogoSelecionado = localStorage.getItem('jogoSelecionado');
+
+      if (!jogoSelecionado) {
+        alert('Nenhum jogo selecionado. Redirecionando para a seleção de jogos.');
+        window.location.href = 'HomePage.html';
+        return;
+      }
+
+      // Chamar o PHP para iniciar o jogo
+      try {
+        const email = localStorage.getItem('email');
+        const password = localStorage.getItem('password');
+
+        const response = await fetch('http://localhost/iniciarJogo.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ idJogo: jogoSelecionado, email, password }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao iniciar o jogo.');
+        }
+
+        const result = await response.json();
+        alert(result.message || 'Jogo iniciado com sucesso!');
+        // Redireciona para a página inicial do jogo, caso necessário
+        // window.location.href = 'GamePage.html'; // Alterar para a página onde o jogo começa (não sei o que fazer depois de iniciar o jogo)
+      } catch (error) {
+        console.error('Erro ao iniciar o jogo:', error);
+        alert('Erro ao iniciar o jogo.');
+      }
+    }
   </script>
 </head>
+
 <body>
   <div class="container">
-    <h1 id="titulo-jogo">Jogo</h1>
-    <p>Valor a alterar:</p>
+    <h1 id="nick-jogador">Nick Jogador</h1>
     <form onsubmit="alterarJogo(event)">
-      <label for="nome">Nick do jogador:</label>
-      <input type="text" id="nome" name="nome" placeholder="Insira o Nick do jogador" required>
+      <label for="nome">Novo Nick do Jogador:</label>
+      <input type="text" id="nome" name="nome" placeholder="Insira o Novo Nick do Jogador" required>
       <button type="submit">Alterar</button>
     </form>
     <div class="actions">
       <button onclick="window.location.href='HomePage.html'">Voltar</button>
-      <button onclick="window.location.href='IniciarJogo.html'">Iniciar</button>
+      <button type="button" onclick="iniciarJogo()">Iniciar</button>
     </div>
   </div>
 </body>
+
 </html>

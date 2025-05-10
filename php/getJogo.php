@@ -1,17 +1,39 @@
 <?php
-$conn = new mysqli('localhost', 'root', '', 'pisid_bd9');
+header("Access-Control-Allow-Origin: *");
+header('Content-Type: application/json');
 
-if ($conn->connect_error || !isset($_GET['idJogo'])) {
-    echo json_encode(null);
+// Lê o corpo da requisição
+$data = json_decode(file_get_contents("php://input"), true);
+$idJogo = $data['idJogo'] ?? null;
+$email = $data['email'] ?? null;
+$password = $data['password'] ?? null;
+
+if (!$idJogo || !$email || !$password) {
+    http_response_code(400);
+    echo json_encode(["success" => false, "message" => "Dados incompletos."]);
     exit;
 }
 
-$idJogo = intval($_GET['idJogo']);
-$stmt = $conn->prepare("SELECT NickJogador FROM jogo WHERE IDJogo = ?");
-$stmt->bind_param("i", $idJogo);
-$stmt->execute();
-$result = $stmt->get_result();
-echo json_encode($result->fetch_assoc());
-$stmt->close();
+// Conecta com as credenciais do utilizador
+$conn = new mysqli('localhost', $email, $password, 'pisid_bd9');
+if ($conn->connect_error) {
+    http_response_code(401);
+    echo json_encode(["success" => false, "message" => "Erro de autenticação."]);
+    exit;
+}
+
+try {
+    $stmt = $conn->prepare("CALL getIdJogo_IdUtilizador()");
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $jogo = $result->fetch_assoc();
+    echo json_encode(["success" => true, "nick" => $jogo['NickJogador'] ?? '']);
+
+    $stmt->close();
+} catch (mysqli_sql_exception $e) {
+    http_response_code(500);
+    echo json_encode(["success" => false, "message" => "Erro ao obter jogo: " . $e->getMessage()]);
+}
+
 $conn->close();
-?>

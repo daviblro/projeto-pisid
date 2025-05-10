@@ -1,6 +1,6 @@
-@ -0,0 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -61,11 +61,13 @@
       flex-direction: column;
       gap: 10px;
     }
-</style>
+  </style>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      const idUtilizador = localStorage.getItem('idUtilizador'); // Assumindo que o ID do utilizador está armazenado no localStorage
-      if (!idUtilizador) {
+      const email = localStorage.getItem('email');
+      const password = localStorage.getItem('password');
+
+      if (!email || !password) {
         alert('Usuário não autenticado. Redirecionando para o login.');
         window.location.href = 'LoginForm.html';
         return;
@@ -73,19 +75,27 @@
 
       try {
         // Chamar o PHP para buscar os jogos do utilizador
-        const response = await fetch(`http://localhost/getJogos.php?idUtilizador=${idUtilizador}`);
+        const response = await fetch('http://localhost/getJogos.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password }),
+        });
+
         if (!response.ok) {
           throw new Error('Erro ao buscar os jogos do utilizador.');
         }
 
-        const jogos = await response.json();
+        const jogosResponse = await response.json();
+        const jogos = jogosResponse.jogos;
         const selectElement = document.getElementById('jogo');
 
         // Preencher o <select> com os jogos retornados
         jogos.forEach(jogo => {
           const option = document.createElement('option');
-          option.value = jogo.id; // Assumindo que cada jogo tem um campo "id"
-          option.textContent = jogo.nome; // Assumindo que cada jogo tem um campo "nome"
+          option.value = jogo.IDJogo;
+          option.textContent = jogo.NickJogador;
           selectElement.appendChild(option);
         });
       } catch (error) {
@@ -95,9 +105,13 @@
     });
 
     function selecionarJogo() {
-      const jogoSelecionado = document.getElementById('jogo').value;
+      const select = document.getElementById('jogo');
+      const jogoSelecionado = select.value;
+      const nickJogador = select.options[select.selectedIndex].text;
+
       if (jogoSelecionado) {
         localStorage.setItem('jogoSelecionado', jogoSelecionado);
+        localStorage.setItem('NickJogador', nickJogador);
         window.location.href = 'AlterarJogo.html';
       } else {
         alert('Por favor, selecione um jogo.');
@@ -105,6 +119,7 @@
     }
   </script>
 </head>
+
 <body>
   <div class="container">
     <h1>Selecione o jogo que pretende alterar:</h1>
@@ -113,9 +128,10 @@
     </select>
     <div class="actions">
       <button onclick="selecionarJogo()">Alterar Jogo</button>
-      <button onclick="window.location.href='CriarJogo.html'">Criar novo Jogo</button>
+      <button onclick="window.location.href='CriarJogo.html'">Criar Novo Jogo</button>
       <button onclick="window.location.href='LoginForm.html'">Logout</button>
     </div>
   </div>
 </body>
+
 </html>

@@ -1,13 +1,18 @@
--<?php
-    $db = "pisid_bd9"; 
-	$dbhost = "localhost"; 
-	$username = $_POST["username"];
-	$password = $_POST["password"];
-	$doorOrigin = $_POST["SalaOrigemController"];
-	$doorDestiny = $_POST["SalaDestinoController"];
-	$conn = mysqli_connect($dbhost, $username, $password, $db);	
-	$sql = "CALL openDoor($doorOrigin,$doorDestiny)";
-	$result = mysqli_query($conn, $sql);
-	mysqli_close ($conn);
-	echo json_encode($result);
+<?php
+    $player = $_POST["username"]; // ou outro identificador
+    $origin = $_POST["SalaOrigemController"];
+    $destiny = $_POST["SalaDestinoController"];
+
+    // Caminho completo para o Python e o script
+    $python = "python3"; // ou apenas "python" no Windows
+    $script = "/scripts/triggers.py";
+    
+    // Monta comando e escapa os argumentos
+    $command = escapeshellcmd("$python $script open_door $player $origin $destiny");
+
+    // Executa
+    $output = shell_exec($command);
+
+    // Retorna resposta
+    echo json_encode(["output" => $output]);
 ?>

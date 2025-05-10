@@ -1,5 +1,5 @@
 <?php
-header("Access-Control-Allow-Origin: http://127.0.0.1:3000");
+header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header('Content-Type: application/json');
@@ -21,19 +21,13 @@ $password = $input['password'] ?? '';
 
 $response = [
     "success" => false,
-    "message" => " $username, $password"
-];
-echo json_encode($response);
-
-$response = [
-    "success" => false,
     "message" => ""
 ];
 
 // Verifica se os campos foram enviados
 if (empty($username) || empty($password)) {
-    //$response["message"] = "Campos de login ausentes.";
-    //echo json_encode($response);
+    $response["message"] = "Campos de login ausentes.";
+    echo json_encode($response);
     exit;
 }
 
@@ -45,10 +39,10 @@ if ($conn) {
 
     // 2. Conecta com utilizador interno para buscar info
     $internalConn = @mysqli_connect($dbhost, $internalUser, $internalPass, $dbname);
-    
+
     if (!$internalConn) {
-        //$response["message"] = "Erro interno ao obter dados do utilizador.";
-        //echo json_encode($response);
+        $response["message"] = "Erro interno ao obter dados do utilizador.";
+        echo json_encode($response);
         exit;
     }
 
@@ -77,5 +71,4 @@ if ($conn) {
     $response["message"] = "Login falhou. Verifique email e senha.";
 }
 
-//echo json_encode($response);
-?>
+echo json_encode($response);
