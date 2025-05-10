@@ -410,7 +410,7 @@ CREATE TRIGGER `atualizar_ocupacao_movimento` AFTER INSERT ON `movement` FOR EAC
     -- Verifica a sala de origem
     IF EXISTS (
         SELECT 1 FROM sala 
-        WHERE IDSala = NEW.RoomOrigin
+        WHERE IDSala = NEW.RoomOrigin AND NumeroMarsamisEven > 1 
           AND IFNULL(NumeroMarsamisEven,0) = IFNULL(NumeroMarsamisOdd,0)
     ) THEN
         INSERT INTO mensagens (IDJogo, Hora,Leitura, TipoAlerta, Msg, HoraEscrita)
@@ -422,7 +422,7 @@ CREATE TRIGGER `atualizar_ocupacao_movimento` AFTER INSERT ON `movement` FOR EAC
     -- Verifica a sala de destino
     IF EXISTS (
         SELECT 1 FROM sala 
-        WHERE IDSala = NEW.RoomDestiny 
+        WHERE IDSala = NEW.RoomDestiny AND NumeroMarsamisEven > 1 
           AND IFNULL(NumeroMarsamisEven,0) = IFNULL(NumeroMarsamisOdd,0)
     ) THEN
         INSERT INTO mensagens (IDJogo, Hora, Leitura, TipoAlerta, Msg, HoraEscrita)
