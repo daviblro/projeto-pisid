@@ -1,6 +1,8 @@
 import paho.mqtt.publish as mqtt
 import json
 import sys
+import mysql.connector 
+from mysql.connector import Error
 
 message = None  # Variável global a ser usada para enviar
 
@@ -35,10 +37,44 @@ def score(player, room):
     }
 
 def get_score(player):
-    print(f"Pedido de pontuação do jogador {player}")
-    return {
-        ""
-    }
+    try:
+        conn = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="",
+            database="pisid_bd9"
+        )
+        cursor = conn.cursor(dictionary=True)
+
+        # Obtem o ID do jogo atual do jogador
+        cursor.execute("""
+            SELECT IDJogo FROM jogo 
+            WHERE IDJogador = %s AND Estado = 'jogando'
+        """, (player,))
+        result = cursor.fetchone()
+
+        if not result:
+            print(json.dumps({"error": "Jogo não encontrado para o jogador"}))
+            return
+
+        jogo_id = result["IDJogo"]
+
+        # Obtem pontuações das salas desse jogo
+        cursor.execute("""
+            SELECT IDSala, Pontos FROM sala
+            WHERE IDJogo_Sala = %s
+        """, (jogo_id,))
+        salas = cursor.fetchall()
+
+        print(json.dumps({"scores": salas}))  # Output que o PHP vai apanhar
+
+    except mysql.connector.Error as e:
+        print(json.dumps({"error": str(e)}))
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals() and conn.is_connected():
+            conn.close()
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
@@ -64,7 +100,8 @@ if __name__ == "__main__":
         room = sys.argv[3]
         message = score(player, room)
     elif command == "get_score":
-        message = get_score(player)
+        get_score(player)
+        sys.exit(0)
     else:
         print("❌ Comando desconhecido.")
         sys.exit(1)
