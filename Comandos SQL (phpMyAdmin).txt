@@ -1,7 +1,7 @@
 ## 1 - Comandos iniciais da BD
 
 CREATE ROLE 'jogador';
-GRANT SELECT, UPDATE ON pisid_bd9.jogos_utilizador TO 'jogador'
+GRANT SELECT, UPDATE ON pisid_bd9.jogos_utilizador TO 'jogador';
 GRANT EXECUTE ON PROCEDURE pisid_bd9.alterar_jogo TO 'jogador';
 GRANT EXECUTE ON PROCEDURE pisid_bd9.criar_jogo TO 'jogador';
 GRANT EXECUTE ON PROCEDURE pisid_bd9.iniciar_jogo TO 'jogador';
