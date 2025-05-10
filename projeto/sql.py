@@ -144,10 +144,10 @@ def insert_into_mysql(connection, table, data):
 
                     if alerta == "Perigo_Ruido" and ultimo_tipo != "Perigo_Ruido":
                         permitir_insercao = True
-                        client.publish("pisid_mazeact", f"{{Type: CloseAllDoor, Player:9}}")
+                        #client.publish("pisid_mazeact", f"{{Type: CloseAllDoor, Player:9}}")
                     elif segundos_desde_ultimo > 5:
                         permitir_insercao = True
-                        client.publish("pisid_mazeact", f"{{Type: OpenAllDoor, Player:9}}")
+                        #client.publish("pisid_mazeact", f"{{Type: OpenAllDoor, Player:9}}")
 
                 if permitir_insercao: 
                     cursor.execute("""

@@ -18,15 +18,21 @@ for i in range(1,10+1):
     mapMarsami[i] = [0,0] 
 gatilho = [0 for i in range(1,11)]
 
+closeDoorSound = 0
+check_closed_door = False
+
 def check_room(room, client, marsami): #tem de ser passado o n' do room
     if(gatilho[room-1] >= 3):
-        return
-    gatilho[room-1] += 1
+        return False
     
+    print(mapMarsami)
     if (mapMarsami[room][0] == mapMarsami[room][1]) and (mapMarsami[room][0] > 1):   #n é necessário verificação de sala nula porque é sempre visto uma sala com algum marsami
         client.publish("pisid_mazeact", f"{{Type: Score, Player:9, Room: {room}}}")
+        gatilho[room-1] += 1
         print(f"Sala {room}: {mapMarsami[room][0]} even e {mapMarsami[room][1]} odd")
         print(f'Disparei para a sala {room}! +1 ponto')
+        return True
+    return False    
 
 # Funções de validação
 def is_valid_datetime(dt_str, message):
@@ -82,6 +88,7 @@ def connect_to_mysql():
     except Error as e:
         print("❌ Erro ao conectar ao MySQL:", e)
         return None
+    
 
 def insert_game_config(cursor):
     try:
@@ -101,6 +108,8 @@ def insert_game_config(cursor):
         if game_config:
             variation_level = float(game_config[0])
             normal_noise = float(game_config[1])
+            global closeDoorSound 
+            closeDoorSound = normal_noise + 0.9 * variation_level
             config_json = {
                 "NormalNoise": normal_noise,
                 "soundVariationLimit": variation_level,
@@ -130,8 +139,8 @@ def fix_json_format(msg):
 
 def on_connect(client, userdata, flags, reason_code):
     print("MQTT conectado com código:", reason_code)
-    client.subscribe("pisid_mazemov_9", qos=2)
-    client.subscribe("pisid_mazesound_9", qos=2)
+    client.subscribe("pisid_mazemov_9", qos=1)
+    client.subscribe("pisid_mazesound_9", qos=1)
 
 def on_message(client, userdata, msg):
     try:
@@ -149,7 +158,7 @@ def on_message(client, userdata, msg):
             
                         # Ignora verificação de configuração se RoomOrigin for 0
             if message["RoomOrigin"] == 0:
-                check_room(message["RoomDestiny"], client, message["Marsami"])
+                mapMarsami[message["RoomDestiny"]][message["Marsami"]%2] += 1
                 mycol_movement.insert_one(message)
                 print("✅ Movimento com RoomOrigin=0 guardado no MongoDB!")
                 return
@@ -182,11 +191,18 @@ def on_message(client, userdata, msg):
                     "reason": "RoomDestiny not connected to RoomOrigin"
                 })
             else:
-                mycol_movement.insert_one(message)
                 if(mapMarsami[message["RoomOrigin"]][message["Marsami"]%2] > 0):
                     mapMarsami[message["RoomOrigin"]][message["Marsami"]%2] -= 1
                 mapMarsami[message["RoomDestiny"]][message["Marsami"]%2] += 1
-                check_room(message["RoomDestiny"], client, message["Marsami"])
+
+                trigger_rooms = [0, 0]
+                if check_room(message["RoomDestiny"], client, message["Marsami"]):
+                    trigger_rooms[0] = message["RoomDestiny"]
+                if check_room(message["RoomOrigin"], client, message["Marsami"]):
+                    trigger_rooms[1] = message["RoomOrigin"]
+
+                message["gatilho"] = trigger_rooms
+                mycol_movement.insert_one(message)
                 print("✅ Movimento guardado no MongoDB!")
 
         elif msg.topic == "pisid_mazesound_9":
@@ -203,7 +219,7 @@ def on_message(client, userdata, msg):
             last_sounds = list(mycol_sound.find(
                 {"Player": message["Player"]}
             ).sort("Hour", -1).limit(1))
-
+            
             if last_sounds:
                 previous_sound = last_sounds[0]["Sound"]
                 variation = abs(sound_value - previous_sound)
@@ -225,7 +241,20 @@ def on_message(client, userdata, msg):
                 })
                 return
 
+            global check_closed_door
+
             if not is_outlier:
+                print("Som válido: A verificar se é crítico")
+                print(f"Som atual: {message["Sound"]}, Som Critico: {closeDoorSound}")
+                if message["Sound"] >= closeDoorSound :
+                    client.publish("pisid_mazeact", f"{{Type: CloseAllDoor, Player:9}}")
+                    print("❌❌Som crítico: A FECHAR❌❌❌")
+                    check_closed_door = True
+                elif check_closed_door and message["Sound"] < closeDoorSound*0.98:
+                    client.publish("pisid_mazeact", f"{{Type: OpenAllDoor, Player:9}}")
+                    print("✅✅✅✅✅Som bom: ABRIR")
+                    check_closed_door = False
+
                 mycol_sound.insert_one(message)
                 print("✅ Som guardado no MongoDB!")
 
