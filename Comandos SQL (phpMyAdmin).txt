@@ -5,6 +5,8 @@ GRANT SELECT ON pisid_bd9.jogo TO 'jogador';
 GRANT SELECT ON pisid_bd9.utilizador TO 'jogador';
 GRANT EXECUTE ON PROCEDURE pisid_bd9.alterar_jogo TO 'jogador';
 GRANT EXECUTE ON PROCEDURE pisid_bd9.criar_jogo TO 'jogador';
+GRANT EXECUTE ON PROCEDURE pisid_bd9.iniciar_jogo TO 'jogador';
+GRANT EXECUTE ON PROCEDURE pisid_bd9.get_jogos TO 'jogador';
 GRANT EXECUTE ON PROCEDURE pisid_bd9.getIdJogo_IdUtilizador TO 'jogador';
 GRANT EXECUTE ON PROCEDURE pisid_bd9.get_marsami_room TO 'jogador';
 GRANT EXECUTE ON PROCEDURE pisid_bd9.get_mensagens TO 'jogador';

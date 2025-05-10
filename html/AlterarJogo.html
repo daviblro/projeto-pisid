@@ -172,8 +172,8 @@
 
         const result = await response.json();
         alert(result.message || 'Jogo iniciado com sucesso!');
-        // Redireciona para a página inicial do jogo, caso necessário
-        // window.location.href = 'GamePage.html'; // Alterar para a página onde o jogo começa (não sei o que fazer depois de iniciar o jogo)
+        // Redireciona para a página inicial
+        window.location.href = 'HomePage.html';
       } catch (error) {
         console.error('Erro ao iniciar o jogo:', error);
         alert('Erro ao iniciar o jogo.');
