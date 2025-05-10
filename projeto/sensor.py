@@ -21,12 +21,14 @@ gatilho = [0 for i in range(1,11)]
 closeDoorSound = 0
 check_closed_door = False
 
-def check_room(room, client, marsami): #tem de ser passado o n' do room
+def check_room(room, client): #tem de ser passado o n' do room
+    global gatilho
+    global mapMarsami
     if(gatilho[room-1] >= 3):
         return False
     
     print(mapMarsami)
-    if (mapMarsami[room][0] == mapMarsami[room][1]) and (mapMarsami[room][0] > 1):   #n é necessário verificação de sala nula porque é sempre visto uma sala com algum marsami
+    if (mapMarsami[room][0] != mapMarsami[room][1] and mapMarsami[room][0] > 1):   #n é necessário verificação de sala nula porque é sempre visto uma sala com algum marsami
         client.publish("pisid_mazeact", f"{{Type: Score, Player:9, Room: {room}}}")
         gatilho[room-1] += 1
         print(f"Sala {room}: {mapMarsami[room][0]} even e {mapMarsami[room][1]} odd")
@@ -152,6 +154,7 @@ def on_message(client, userdata, msg):
             return
 
         if msg.topic == "pisid_mazemov_9":
+            global mapMarsami
             required_fields = ["Player", "Marsami", "RoomOrigin", "RoomDestiny", "Status"]
             if not validate_required_fields(message, required_fields, "movement"):
                 return
@@ -196,12 +199,14 @@ def on_message(client, userdata, msg):
                 mapMarsami[message["RoomDestiny"]][message["Marsami"]%2] += 1
 
                 trigger_rooms = [0, 0]
-                if check_room(message["RoomDestiny"], client, message["Marsami"]):
-                    trigger_rooms[0] = message["RoomDestiny"]
-                if check_room(message["RoomOrigin"], client, message["Marsami"]):
-                    trigger_rooms[1] = message["RoomOrigin"]
+                if check_room(message["RoomDestiny"], client):
+                    trigger_rooms[message["RoomDestiny"]%2] = message["RoomDestiny"]
+                if check_room(message["RoomOrigin"], client):
+                    trigger_rooms[message["RoomOrigin"]%2] = message["RoomOrigin"]
 
-                message["gatilho"] = trigger_rooms
+                if trigger_rooms[0] != 0 or trigger_rooms[1] != 0:
+                    message["gatilho"] = trigger_rooms
+
                 mycol_movement.insert_one(message)
                 print("✅ Movimento guardado no MongoDB!")
 
@@ -249,7 +254,7 @@ def on_message(client, userdata, msg):
                 if message["Sound"] >= closeDoorSound :
                     client.publish("pisid_mazeact", f"{{Type: CloseAllDoor, Player:9}}")
                     print("❌❌Som crítico: A FECHAR❌❌❌")
-                    check_closed_door = True
+
                 elif check_closed_door and message["Sound"] < closeDoorSound*0.98:
                     client.publish("pisid_mazeact", f"{{Type: OpenAllDoor, Player:9}}")
                     print("✅✅✅✅✅Som bom: ABRIR")

@@ -53,7 +53,7 @@ def send_mqtt_messages():
         try:
             # 🔍 Enviar movimentos não enviados (sent != True)
             movements_cursor = mycol_movement.find({"sent": {"$ne": True}}, 
-                                                   {"_id": 1, "Player": 1, "Marsami": 1, "RoomOrigin": 1, "RoomDestiny": 1, "Status": 1})
+                                                   {"_id": 1, "Player": 1, "Marsami": 1, "RoomOrigin": 1, "RoomDestiny": 1, "Status": 1, "gatilho":1})
             movements = list(movements_cursor)
 
             for m in movements:

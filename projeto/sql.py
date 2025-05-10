@@ -92,10 +92,23 @@ def insert_into_mysql(connection, table, data):
             return
 
         if table == "movement":
+            print(data)
             query = "INSERT INTO movement (Marsami, RoomOrigin, RoomDestiny, IDJogo, Status) VALUES (%s, %s, %s, %s, %s)"
             values = (data["Marsami"], data["RoomOrigin"], data["RoomDestiny"], id_jogo, data["Status"])
             cursor.execute(query, values)
             connection.commit()
+
+            if "gatilho" in data:
+                print("gatilho em data")
+                print(data["gatilho"])
+                for room in data["gatilho"]:
+                    if room != 0:
+                            cursor.execute("""
+                            UPDATE sala 
+                            SET gatilho = %s
+                            WHERE IDJogo_Sala = %s
+                        """, (room, id_jogo))
+
             print(f"✅ Dados inseridos na tabela {table} com sucesso!")
 
         elif table == "sound":
