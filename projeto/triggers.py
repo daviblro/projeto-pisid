@@ -3,6 +3,7 @@ import json
 import sys
 import mysql.connector 
 from mysql.connector import Error
+import decimal
 
 message = None  # Variável global a ser usada para enviar
 
@@ -49,7 +50,7 @@ def get_score(player):
         # Obtem o ID do jogo atual do jogador
         cursor.execute("""
             SELECT IDJogo FROM jogo 
-            WHERE IDJogador = %s AND Estado = 'jogando'
+            WHERE IDUtilizador = %s AND Estado = 'jogando'
         """, (player,))
         result = cursor.fetchone()
 
@@ -59,14 +60,18 @@ def get_score(player):
 
         jogo_id = result["IDJogo"]
 
-        # Obtem pontuações das salas desse jogo
+        # Soma total dos pontos das salas associadas ao jogo
         cursor.execute("""
-            SELECT IDSala, Pontos FROM sala
+            SELECT SUM(Pontos) as TotalPontos FROM sala
             WHERE IDJogo_Sala = %s
         """, (jogo_id,))
-        salas = cursor.fetchall()
+        total = cursor.fetchone()
 
-        print(json.dumps({"scores": salas}))  # Output que o PHP vai apanhar
+        # Converter Decimal para int ou float
+        pontos = total["TotalPontos"]
+        pontos = int(pontos) if pontos is not None else 0
+
+        print(json.dumps({"total_score": pontos}))
 
     except mysql.connector.Error as e:
         print(json.dumps({"error": str(e)}))
