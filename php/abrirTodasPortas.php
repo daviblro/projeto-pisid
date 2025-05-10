@@ -1,11 +1,11 @@
--<?php
-    $db = "pisid_bd9"; 
-	$dbhost = "localhost"; 
-	$username = $_POST["username"];
-	$password = $_POST["password"];
-	$conn = mysqli_connect($dbhost, $username, $password, $db);	
-	$sql = "CALL startGame()";
-	$result = mysqli_query($conn, $sql);
-	mysqli_close ($conn);
-	echo json_encode($result);
-?>
+<?php
+$player = $_POST["username"];
+
+$python = "python";
+$script = "/scripts/triggers.py";
+
+$command = escapeshellcmd("$python $script open_all_doors $player");
+
+$output = shell_exec($command);
+
+echo json_encode(["output" => $output]);

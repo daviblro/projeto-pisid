@@ -146,7 +146,7 @@
 
       // Chamar o PHP para iniciar o jogo
       try {
-        const email = localStorage.getItem('email');
+        const username = localStorage.getItem('email');
         const password = localStorage.getItem('password');
 
         const response = await fetch('http://localhost/iniciarJogo.php', {
@@ -154,7 +154,7 @@
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ idJogo: jogoSelecionado, email, password }),
+          body: JSON.stringify({ idJogo: jogoSelecionado, username, password }),
         });
 
         if (!response.ok) {

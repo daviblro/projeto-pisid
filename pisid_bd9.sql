@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 10, 2025 at 11:25 AM
+-- Generation Time: May 10, 2025 at 07:19 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -185,7 +185,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getIdJogo_IdUtilizador` ()   BEGIN
     -- Retorna o ID do jogo mais recente criado por esse utilizador
     SELECT IDJogo, v_id_utilizador AS IDUtilizador
     FROM jogo
-    WHERE IDUtilizador = v_id_utilizador
+    WHERE IDUtilizador = v_id_utilizador AND Estado = 'jogando'
     ORDER BY IDJogo DESC
     LIMIT 1;
 END$$
@@ -214,8 +214,8 @@ END$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `get_mensagens` ()   BEGIN
     SELECT Msg, Leitura, TipoAlerta, Hora, HoraEscrita
     FROM mensagens
-    WHERE Hora >= NOW() - INTERVAL 60 MINUTE
-    ORDER BY Hora DESC;
+    WHERE HoraEscrita >= NOW() - INTERVAL 60 MINUTE
+    ORDER BY HoraEscrita DESC;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `get_sensores` (IN `p_idjogo` INT(50))   BEGIN
@@ -300,8 +300,7 @@ CREATE TABLE `jogo` (
 --
 
 INSERT INTO `jogo` (`IDJogo`, `NickJogador`, `DataHoraInicio`, `DataHoraFim`, `Estado`, `max_sound`, `IDUtilizador`, `normal_noise`) VALUES
-(1, 'Mufasa alt', '2025-05-10 02:01:29', NULL, 'jogando', NULL, 6, NULL),
-(2, 'Hulk', NULL, NULL, 'nao_inicializado', NULL, 6, NULL);
+(1, 'Mufasa', NULL, NULL, 'nao_inicializado', NULL, 6, NULL);
 
 --
 -- Triggers `jogo`
@@ -329,6 +328,23 @@ CREATE TRIGGER `criar_salas_apos_criar_jogo` AFTER INSERT ON `jogo` FOR EACH ROW
 END
 $$
 DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `jogos_utilizador`
+-- (See below for the actual view)
+--
+CREATE TABLE `jogos_utilizador` (
+`IDJogo` int(11)
+,`NickJogador` varchar(50)
+,`DataHoraInicio` timestamp
+,`DataHoraFim` timestamp
+,`Estado` enum('nao_inicializado','jogando','finalizado')
+,`max_sound` float
+,`IDUtilizador` int(11)
+,`normal_noise` float
+);
 
 -- --------------------------------------------------------
 
@@ -440,27 +456,16 @@ CREATE TABLE `sala` (
 
 INSERT INTO `sala` (`IDJogo_Sala`, `IDSala`, `NumeroMarsamisOdd`, `NumeroMarsamisEven`, `Pontos`, `Gatilhos`) VALUES
 (1, 0, 15, 15, 0, 0),
-(2, 0, 15, 15, 0, 0),
-(1, 1, 0, 0, 0, 0),
-(2, 1, 0, 0, 0, 0),
+(1, 1, 0, 0, 5, 0),
 (1, 2, 0, 0, 0, 0),
-(2, 2, 0, 0, 0, 0),
 (1, 3, 0, 0, 0, 0),
-(2, 3, 0, 0, 0, 0),
 (1, 4, 0, 0, 0, 0),
-(2, 4, 0, 0, 0, 0),
-(1, 5, 0, 0, 0, 0),
-(2, 5, 0, 0, 0, 0),
+(1, 5, 0, 0, 2, 0),
 (1, 6, 0, 0, 0, 0),
-(2, 6, 0, 0, 0, 0),
 (1, 7, 0, 0, 0, 0),
-(2, 7, 0, 0, 0, 0),
 (1, 8, 0, 0, 0, 0),
-(2, 8, 0, 0, 0, 0),
 (1, 9, 0, 0, 0, 0),
-(2, 9, 0, 0, 0, 0),
-(1, 10, 0, 0, 0, 0),
-(2, 10, 0, 0, 0, 0);
+(1, 10, 0, 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -553,7 +558,7 @@ ALTER TABLE `utilizador`
 -- AUTO_INCREMENT for table `jogo`
 --
 ALTER TABLE `jogo`
-  MODIFY `IDJogo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `IDJogo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `mensagens`
@@ -578,6 +583,15 @@ ALTER TABLE `sound`
 --
 ALTER TABLE `utilizador`
   MODIFY `IDUtilizador` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `jogos_utilizador`
+--
+DROP TABLE IF EXISTS `jogos_utilizador`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `jogos_utilizador`  AS SELECT `j`.`IDJogo` AS `IDJogo`, `j`.`NickJogador` AS `NickJogador`, `j`.`DataHoraInicio` AS `DataHoraInicio`, `j`.`DataHoraFim` AS `DataHoraFim`, `j`.`Estado` AS `Estado`, `j`.`max_sound` AS `max_sound`, `j`.`IDUtilizador` AS `IDUtilizador`, `j`.`normal_noise` AS `normal_noise` FROM (`jogo` `j` join `utilizador` `u` on(`j`.`IDUtilizador` = `u`.`IDUtilizador`)) WHERE `u`.`Email` = substring_index(user(),'@',2) ;
 
 --
 -- Constraints for dumped tables

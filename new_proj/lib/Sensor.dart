@@ -42,8 +42,8 @@ class _SensorChartPageState extends State<SensorChartPage> {
   var nSensors = 1;
   late Timer timer;
   double timeLimit = 10;
-  var readingNormalNoise;
-  var readingTolerationNoise;
+  double readingNormalNoise = 0.0;
+  double readingTolerationNoise = 0.0;
   bool dataLoaded = false; //Flag to check if data is loaded
   Color sensor1Color = Colors.green;
   @override
@@ -155,12 +155,12 @@ class _SensorChartPageState extends State<SensorChartPage> {
 
           for (var reading in jsonData) {
             readingNormalNoise =
-                double.parse(reading["normalnoise"].toString());
-            print("Normal noise getReadings(): $readingNormalNoise");
+                double.parse(reading["normal_noise"].toString());
+            //print("Normal noise getReadings(): $readingNormalNoise");
             //readingTolerationNoise= double.parse(reading["noisevartoteration"].toString());
             readingTolerationNoise = readingNormalNoise * 0.15;
             readingTime = DateTime.parse(reading["Hour"].toString());
-            print("Hour getReadings(): $readingTime");
+            //print("Hour getReadings(): $readingTime");
             currentTime = DateTime.now()
                 .add(const Duration(hours: 1)); // correct time to GMT+0
             timeDiff = currentTime.difference(readingTime).inSeconds.toDouble();
@@ -168,7 +168,7 @@ class _SensorChartPageState extends State<SensorChartPage> {
             if (timeDiff.isFinite) {
               if (timeDiff >= 0.0) {
                 var value = double.parse(reading["Sound"].toString());
-                print("Sound getReadings(): $value");
+                //print("Sound getReadings(): $value");
                 sensor1Color = Colors.green;
                 //print(readingNormalNoise);
                 //print(readingTolerationNoise);
@@ -192,20 +192,19 @@ class _SensorChartPageState extends State<SensorChartPage> {
             }
           }
         }
-        if (flaglimit == 1) {
-          sensor1Color = Colors.red;
-          print("RED");
-        } else {
-          sensor1Color = Colors.green;
-          //print ("GREEN");
-        }
+        // if (flaglimit == 1) {
+        //   sensor1Color = Colors.red;
+        //   print("RED");
+        // } else {
+        //   sensor1Color = Colors.green;
+        //   //print ("GREEN");
+        // }
         print("readingNormalNoise getReadings(): $readingNormalNoise");
         print("readingTolerationNoise getReadings(): $readingTolerationNoise");
         print("dataLoaded getReadings(): $dataLoaded");
-        if (readingNormalNoise != null &&
-            readingTolerationNoise != null &&
-            !dataLoaded) {
+        if (readingNormalNoise > 0 && readingTolerationNoise > 0) {
           setState(() {
+            sensor1Color = flaglimit == 1 ? Colors.red : Colors.green;
             dataLoaded = true;
           });
         }

@@ -46,13 +46,7 @@ class MensagensMainState extends State<MensagensMain> {
   var mostRecentMensagens = 0; //Most recent messages counter
 
   //Fields for the data table
-  var tableFields = [
-    'Msg',
-    'Leitura',
-    'TipoMensagem',
-    'Hora',
-    'HoraEscrita'
-  ];
+  var tableFields = ['Msg', 'Leitura', 'TipoMensagem', 'Hora', 'HoraEscrita'];
   var tableMensagens = <int, List<String>>{};
 
   int _selectedIndex = 0; //Index of the selected navigation item
@@ -181,10 +175,11 @@ class MensagensMainState extends State<MensagensMain> {
           tableMensagens.clear();
           for (var i = 0; i < Mensagens.length; i++) {
             Map<String, dynamic> newMensagens = Mensagens[i];
-            int timeKey = int.parse(newMensagens["Hora"]
-                .toString()
-                .split(" ")[1]
-                .replaceAll(":", ""));
+            String horaString =
+                newMensagens["Hora"] ?? newMensagens["HoraEscrita"];
+            int timeKey = int.parse(
+              horaString.toString().split(" ")[1].replaceAll(":", ""),
+            );
             var MensagensValues = <String>[];
             for (var key in newMensagens.keys) {
               if (newMensagens[key] == null) {

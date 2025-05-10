@@ -4,7 +4,7 @@ $origin = $_POST["SalaOrigemController"];
 $destiny = $_POST["SalaDestinoController"];
 
 // Caminho completo para o Python e o script
-$python = "python3"; // ou apenas "python" no Windows
+$python = "python";
 $script = "/scripts/triggers.py";
 
 // Monta comando e escapa os argumentos
