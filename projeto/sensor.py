@@ -154,7 +154,7 @@ def on_message(client, userdata, msg):
             return
 
         if msg.topic == "pisid_mazemov_9":
-            global mapMarsami
+            
             required_fields = ["Player", "Marsami", "RoomOrigin", "RoomDestiny", "Status"]
             if not validate_required_fields(message, required_fields, "movement"):
                 return

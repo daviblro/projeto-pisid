@@ -105,7 +105,7 @@ def insert_into_mysql(connection, table, data):
                     if room != 0:
                             cursor.execute("""
                             UPDATE sala 
-                            SET gatilho = %s
+                            SET Gatilhos = %s
                             WHERE IDJogo_Sala = %s
                         """, (room, id_jogo))
 

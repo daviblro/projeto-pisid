@@ -27,7 +27,7 @@ GRANT INSERT ON pisid_bd9.sound TO 'software';
 ## CRIAR USER FANTASMA PARA OPERAÇÕES INTERNAS DE BD.
 
 CREATE USER 'fantasma' IDENTIFIED BY 'fantasma';
-GRANT SELECT, INSERT, UPDATE, DELETE ON `pisid_bd9`.* TO `fantasma`@`localhost`;                             |
+GRANT SELECT, INSERT, UPDATE, DELETE ON `pisid_bd9`.* TO `fantasma`@`localhost`;                             
 GRANT EXECUTE ON PROCEDURE `pisid_bd9`.`validar_login` TO `fantasma`@`localhost`; 
 
 
