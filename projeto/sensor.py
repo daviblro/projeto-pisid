@@ -23,12 +23,11 @@ check_closed_door = False
 
 def check_room(room, client): #tem de ser passado o n' do room
     global gatilho
-    global mapMarsami
     if(gatilho[room-1] >= 3):
         return False
     
     print(mapMarsami)
-    if (mapMarsami[room][0] != mapMarsami[room][1] and mapMarsami[room][0] > 1):   #n é necessário verificação de sala nula porque é sempre visto uma sala com algum marsami
+    if (mapMarsami[room][0] == mapMarsami[room][1] and mapMarsami[room][0] > 1):   #n é necessário verificação de sala nula porque é sempre visto uma sala com algum marsami
         client.publish("pisid_mazeact", f"{{Type: Score, Player:9, Room: {room}}}")
         gatilho[room-1] += 1
         print(f"Sala {room}: {mapMarsami[room][0]} even e {mapMarsami[room][1]} odd")
@@ -146,6 +145,7 @@ def on_connect(client, userdata, flags, reason_code):
 
 def on_message(client, userdata, msg):
     try:
+        global mapMarsami
         decoded_message = msg.payload.decode("utf-8")
         print(f"Mensagem recebida no tópico {msg.topic}: {decoded_message}")
 
@@ -162,6 +162,7 @@ def on_message(client, userdata, msg):
                         # Ignora verificação de configuração se RoomOrigin for 0
             if message["RoomOrigin"] == 0:
                 mapMarsami[message["RoomDestiny"]][message["Marsami"]%2] += 1
+                print(mapMarsami)
                 mycol_movement.insert_one(message)
                 print("✅ Movimento com RoomOrigin=0 guardado no MongoDB!")
                 return
@@ -194,8 +195,7 @@ def on_message(client, userdata, msg):
                     "reason": "RoomDestiny not connected to RoomOrigin"
                 })
             else:
-                if(mapMarsami[message["RoomOrigin"]][message["Marsami"]%2] > 0):
-                    mapMarsami[message["RoomOrigin"]][message["Marsami"]%2] -= 1
+                mapMarsami[message["RoomOrigin"]][message["Marsami"]%2] -= 1
                 mapMarsami[message["RoomDestiny"]][message["Marsami"]%2] += 1
 
                 trigger_rooms = [0, 0]
