@@ -1,5 +1,5 @@
 <?php
-$player = $_POST["username"];
+$player = $_POST["player"];
 $origin = $_POST["SalaOrigemController"];
 $destiny = $_POST["SalaDestinoController"];
 

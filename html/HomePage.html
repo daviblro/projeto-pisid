@@ -136,11 +136,15 @@
 
     // Função chamada quando o botão "Iniciar" é pressionado
     async function iniciarJogo() {
-      const jogoSelecionado = localStorage.getItem('jogoSelecionado');
-
-      if (!jogoSelecionado) {
-        alert('Nenhum jogo selecionado. Redirecionando para a seleção de jogos.');
-        window.location.href = 'HomePage.html';
+      // Salva o jogo selecionado no localStorage
+      const select = document.getElementById('jogo');
+      const jogoSelecionado = select.value;
+      const nickJogador = select.options[select.selectedIndex].text;
+      if (jogoSelecionado) {
+        localStorage.setItem('jogoSelecionado', jogoSelecionado);
+        localStorage.setItem('NickJogador', nickJogador);
+      } else {
+        alert('Por favor, selecione um jogo.');
         return;
       }
 
