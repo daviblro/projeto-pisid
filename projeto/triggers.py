@@ -114,7 +114,7 @@ if __name__ == "__main__":
     # Envia para o broker MQTT
     mqtt.single(
         topic="pisid_mazeact",
-        payload=message,
+        payload=str(message),
         hostname="broker.emqx.io", 
         port=1883
     )
