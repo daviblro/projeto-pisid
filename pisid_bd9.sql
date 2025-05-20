@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 10, 2025 at 07:19 PM
+-- Generation Time: May 20, 2025 at 09:44 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -296,13 +296,6 @@ CREATE TABLE `jogo` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `jogo`
---
-
-INSERT INTO `jogo` (`IDJogo`, `NickJogador`, `DataHoraInicio`, `DataHoraFim`, `Estado`, `max_sound`, `IDUtilizador`, `normal_noise`) VALUES
-(1, 'Mufasa', NULL, NULL, 'nao_inicializado', NULL, 6, NULL);
-
---
 -- Triggers `jogo`
 --
 DELIMITER $$
@@ -434,6 +427,28 @@ CREATE TRIGGER `atualizar_ocupacao_movimento` AFTER INSERT ON `movement` FOR EAC
 END
 $$
 DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `verificar_movimentos_finalizados` AFTER INSERT ON `movement` FOR EACH ROW BEGIN
+        DECLARE total_movs INT;
+
+        -- Só processa se o novo status for 2
+        IF NEW.Status = 2 THEN
+            -- Conta quantos movimentos desse jogo têm status = 2
+            SELECT COUNT(*) INTO total_movs
+            FROM movement
+            WHERE IDJogo = NEW.IDJogo AND Status = 2;
+
+            -- Se forem 30 ou mais, atualiza o estado do jogo e define a hora de fim
+            IF total_movs >= 30 THEN
+                UPDATE jogo
+                SET Estado = 'finalizado',
+                    DataHoraFim = NOW()
+                WHERE IDJogo = NEW.IDJogo;
+            END IF;
+        END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -449,23 +464,6 @@ CREATE TABLE `sala` (
   `Pontos` int(11) DEFAULT NULL,
   `Gatilhos` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `sala`
---
-
-INSERT INTO `sala` (`IDJogo_Sala`, `IDSala`, `NumeroMarsamisOdd`, `NumeroMarsamisEven`, `Pontos`, `Gatilhos`) VALUES
-(1, 0, 15, 15, 0, 0),
-(1, 1, 0, 0, 5, 0),
-(1, 2, 0, 0, 0, 0),
-(1, 3, 0, 0, 0, 0),
-(1, 4, 0, 0, 0, 0),
-(1, 5, 0, 0, 2, 0),
-(1, 6, 0, 0, 0, 0),
-(1, 7, 0, 0, 0, 0),
-(1, 8, 0, 0, 0, 0),
-(1, 9, 0, 0, 0, 0),
-(1, 10, 0, 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -558,7 +556,7 @@ ALTER TABLE `utilizador`
 -- AUTO_INCREMENT for table `jogo`
 --
 ALTER TABLE `jogo`
-  MODIFY `IDJogo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `IDJogo` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `mensagens`
