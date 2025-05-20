@@ -110,7 +110,7 @@ def insert_game_config(cursor):
             variation_level = float(game_config[0])
             normal_noise = float(game_config[1])
             global closeDoorSound 
-            closeDoorSound = normal_noise + 0.9 * variation_level
+            closeDoorSound = normal_noise + 0.97 * variation_level
             config_json = {
                 "NormalNoise": normal_noise,
                 "soundVariationLimit": variation_level,
