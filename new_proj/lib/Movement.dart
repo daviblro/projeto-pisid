@@ -41,6 +41,23 @@ class _StackedBarChartPageState extends State<StackedBarChartPage> {
   List<double> oddValues = List.filled(11, 0.0); //Initial blue bar values
   List<double> evenValues = List.filled(11, 0.0); //Initial red bar values
 
+  late Timer timer; // 🔁 Timer para atualização automática
+
+  @override
+  void initState() {
+    const interval = Duration(seconds: 1);
+    timer = Timer.periodic(interval, (Timer t) {
+      getReadings();
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    timer.cancel(); // Cancela o timer ao sair da tela
+    super.dispose();
+  }
+
   Future<void> getReadings() async {
     //Fetches readings and updates the chart data
     final prefs = await SharedPreferences.getInstance();
@@ -53,7 +70,7 @@ class _StackedBarChartPageState extends State<StackedBarChartPage> {
         body: {'username': username, 'password': password});
 
     if (response.statusCode == 200) {
-      print("Resposta bruta do PHP Marsamis: ${response.body}");
+      // print("Resposta bruta do PHP Marsamis: ${response.body}");
       var jsonData = json.decode(response.body);
       if (jsonData != null && jsonData.length > 0) {
         setState(() {
@@ -72,7 +89,7 @@ class _StackedBarChartPageState extends State<StackedBarChartPage> {
           for (int index = 0; index < oddValues.length; index++) {
             barGroups.add(
               BarChartGroupData(
-                x: index + 1,
+                x: index,
                 barRods: [
                   BarChartRodData(
                     y: evenValues[index],
@@ -89,13 +106,6 @@ class _StackedBarChartPageState extends State<StackedBarChartPage> {
         });
       }
     }
-  }
-
-  @override
-  void initState() {
-    //Initializes the state and fetches readings
-    super.initState();
-    getReadings();
   }
 
   @override

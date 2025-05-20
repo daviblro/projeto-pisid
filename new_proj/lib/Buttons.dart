@@ -199,15 +199,16 @@ class _StoredProceduresPageState extends State<StoredProceduresPage> {
     String? ip = prefs.getString('ip');
     String? port = prefs.getString('port');
     int? idJogo = prefs.getInt('idJogo');
-
+    int? idUtilizador = prefs.getInt('idUtilizador');
     String readingsURL = "http://${ip!}:${port!}/$script";
     Map<String, String?> body = {
-      'username': username,
+      'player': idUtilizador.toString(),
       'password': password,
     };
 
     if (script == "iniciarJogo.php" && idJogo != null) {
       body['idJogo'] = idJogo.toString();
+      body['username'] = username;
     }
 
     for (int index = 0; index < argLabels.length; index++) {
@@ -220,7 +221,7 @@ class _StoredProceduresPageState extends State<StoredProceduresPage> {
     }
     var response = await http.post(Uri.parse(readingsURL), body: body);
     if (response.statusCode == 200) {
-      print("Resposta bruta do PHP Buttons: ${response.body}");
+      // print("Resposta bruta do PHP Buttons: ${response.body}");
       var decoded = json.decode(response.body);
       if (decoded["total_score"] != null) {
         _showValueDialog(

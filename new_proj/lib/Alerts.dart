@@ -89,6 +89,12 @@ class MensagensMainState extends State<MensagensMain> {
   }
 
   @override
+  void dispose() {
+    timer.cancel(); // Cancela o timer ao sair da tela
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: SingleChildScrollView(
@@ -167,7 +173,7 @@ class MensagensMainState extends State<MensagensMain> {
     var response = await http.post(Uri.parse(MensagensURL),
         body: {'username': username, 'password': password});
     if (response.statusCode == 200) {
-      print("Resposta bruta do PHP Mensagens: ${response.body}");
+      // print("Resposta bruta do PHP Mensagens: ${response.body}");
       var jsonData = json.decode(response.body);
       var Mensagens = jsonData["mensagens"];
       if (Mensagens != null && Mensagens.length > 0) {
@@ -225,11 +231,5 @@ class MensagensMainState extends State<MensagensMain> {
           DataColumn(label: Text(field))); //Create a DataColumn for each field
     }
     return fields;
-  }
-
-  @override
-  void dispose() {
-    timer.cancel();
-    super.dispose();
   }
 }
