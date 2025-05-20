@@ -1,12 +1,13 @@
 <?php
-$player = $_POST["username"];
+$player = $_POST["player"];
 
 $python = "python";
-$script = "/scripts/triggers.py";
+$script = "./scripts/triggers.py";
 
-$command = escapeshellcmd("$python $script get_score $player");
+$command = escapeshellcmd("$python $script get_score $player 2>&1");
 
 $output = shell_exec($command);
+
 
 // Se o Python imprimiu um JSON válido (como no get_score), devolve diretamente
 header('Content-Type: application/json');
