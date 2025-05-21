@@ -36,7 +36,7 @@ def close_all_doors(client, player):
 
     
 
-def score(client,player, room):
+def score(client, player, room):
     print(f"Disparou na sala {room}")
     client.publish("pisid_mazeact", f"{{Type: Score, Player:{player}}}")
     print(json.dumps({"Disparou na sala": room}))
@@ -101,7 +101,7 @@ def get_score(player):
         elif command == "close_door":
             origin = sys.argv[3]
             destiny = sys.argv[4]
-            close_door(client,  origin, destiny)
+            close_door(client, player, origin, destiny)
         elif command == "open_all_doors":
             open_all_doors(client, player)
         elif command == "close_all_doors":
