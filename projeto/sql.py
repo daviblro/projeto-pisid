@@ -171,6 +171,8 @@ def insert_into_mysql(connection, table, data):
     global movement_buffer
     global sound_buffer
     
+    print(movement_buffer)
+
     if table == "movement":
         required_keys = ["Marsami", "RoomOrigin", "RoomDestiny", "Status"]
     elif table == "sound":
@@ -188,6 +190,7 @@ def insert_into_mysql(connection, table, data):
         print("SEM CONEXAO SQL")
         if table == "movement":
             movement_buffer.append(json.dumps(data))
+            print("Inseri no buffer")
         elif table == "sound":
             sound_buffer.append(json.dumps(data))
     else:
@@ -201,6 +204,7 @@ def insert_into_mysql(connection, table, data):
             print("📦 Dados recebidos:", data)
             
             if len(movement_buffer) > 0:
+                print("TEM MOVIMENTOS NO BUFFER")
                 for i in range(len(movement_buffer)):
                     message = json.load(movement_buffer.pop(0))
                     insert_into_mysql_from_buffer(connection, "movement", message, id_jogo)
@@ -314,7 +318,7 @@ def on_message(client, userdata, msg):
             print("❌ Campo 'messages' ausente!")
             return
         
-        if not client.mysql_connection:
+        if not (client.mysql_connection and client.mysql_connection.is_connected()):
             print("TRYING TO CONNECT TO SQL")
             client.mysql_connection = connect_to_mysql()
 
