@@ -206,12 +206,12 @@ def insert_into_mysql(connection, table, data):
             if len(movement_buffer) > 0:
                 print("TEM MOVIMENTOS NO BUFFER")
                 for i in range(len(movement_buffer)):
-                    message = json.load(movement_buffer.pop(0))
+                    message = json.loads(movement_buffer.pop(0))
                     insert_into_mysql_from_buffer(connection, "movement", message, id_jogo)
 
             if len(sound_buffer) > 0:
                 for i in range(len(sound_buffer)):
-                    message = json.load(sound_buffer.pop(0))
+                    message = json.loads(sound_buffer.pop(0))
                     insert_into_mysql_from_buffer(connection, "sound", message, id_jogo)
 
             if table == "movement":
