@@ -231,20 +231,21 @@ def on_message(client, userdata, msg):
         if "messages" not in data:
             print("❌ Campo 'messages' ausente!")
             return
+        
+        if not client.mysql_connection:
+            print("TRYING TO CONNECT TO SQL")
+            client.mysql_connection = connect_to_mysql()
 
         for message in data["messages"]:
             if "Player" not in message:
                 print("❌ Chave 'Player' ausente!")
                 continue
 
-            if client.mysql_connection:
-                if msg.topic == "pisid_mazemov_99":
-                    insert_into_mysql(client.mysql_connection, "movement", message)
-                elif msg.topic == "pisid_mazesound_99":
-                    insert_into_mysql(client.mysql_connection, "sound", message)
-            else: 
-                print("TRYING TO CONNECT TO SQL")
-                client.mysql_connection = connect_to_mysql()
+            if msg.topic == "pisid_mazemov_99":
+                insert_into_mysql(client.mysql_connection, "movement", message)
+            elif msg.topic == "pisid_mazesound_99":
+                insert_into_mysql(client.mysql_connection, "sound", message)
+                
     except json.JSONDecodeError:
         print("❌ Erro ao decodificar JSON")
 
