@@ -256,7 +256,7 @@ def on_message(client, userdata, msg):
                     print("❌❌Som crítico: A FECHAR❌❌❌")
                     check_closed_door = True
 
-                elif check_closed_door and message["Sound"] < closeDoorSound*0.98:
+                elif check_closed_door and message["Sound"] < closeDoorSound*0.95:
                     client.publish("pisid_mazeact", f"{{Type: OpenAllDoor, Player:9}}")
                     print("✅✅✅✅✅Som bom: ABRIR")
                     check_closed_door = False
