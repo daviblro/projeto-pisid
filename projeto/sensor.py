@@ -110,7 +110,7 @@ def insert_game_config(cursor):
             variation_level = float(game_config[0])
             normal_noise = float(game_config[1])
             global closeDoorSound 
-            closeDoorSound = normal_noise + 0.98 * variation_level
+            closeDoorSound = normal_noise + 0.98 * variation_level #21.16
             config_json = {
                 "NormalNoise": normal_noise,
                 "soundVariationLimit": variation_level,
@@ -256,7 +256,7 @@ def on_message(client, userdata, msg):
                     print("❌❌Som crítico: A FECHAR❌❌❌")
                     check_closed_door = True
 
-                elif check_closed_door and message["Sound"] < closeDoorSound*0.95:
+                elif check_closed_door and message["Sound"] < closeDoorSound*0.96:   #20.3136
                     client.publish("pisid_mazeact", f"{{Type: OpenAllDoor, Player:9}}")
                     print("✅✅✅✅✅Som bom: ABRIR")
                     check_closed_door = False
