@@ -70,19 +70,101 @@ def get_current_game_id(connection):
         print(f"❌ Erro ao obter/atualizar IDJogo: {e}")
         return None
     
-def insert_into_mysql_from_buffer(connection, table, data):
-    if table == "movement":
-        required_keys = ["Marsami", "RoomOrigin", "RoomDestiny", "Status"]
-    elif table == "sound":
-        required_keys = ["Hour", "Sound"]
-    else:
-        print("❌ Tabela desconhecida")
-        return
-
-    for key in required_keys:
-        if key not in data:
-            print(f"❌ Erro: Chave {key} ausente nos dados!")
+def insert_into_mysql_from_buffer(connection, table, data, id_jogo):
+    try:
+        if table == "movement":
+            required_keys = ["Marsami", "RoomOrigin", "RoomDestiny", "Status"]
+        elif table == "sound":
+            required_keys = ["Hour", "Sound"]
+        else:
+            print("❌ Tabela desconhecida")
             return
+
+        for key in required_keys:
+            if key not in data:
+                print(f"❌ Erro: Chave {key} ausente nos dados!")
+                return
+            
+        if table == "movement":
+            print(f'{data} from buffer FROM BUFFER')
+            query = "INSERT INTO movement (Marsami, RoomOrigin, RoomDestiny, IDJogo, Status) VALUES (%s, %s, %s, %s, %s)"
+            values = (data["Marsami"], data["RoomOrigin"], data["RoomDestiny"], id_jogo, data["Status"])
+            cursor.execute(query, values)
+            connection.commit()
+
+            if "gatilho" in data:
+                print("gatilho em data")
+                print(data["gatilho"])
+                for room in data["gatilho"]:
+                    if room != 0:
+                            cursor.execute("""
+                            UPDATE sala 
+                            SET Gatilhos = Gatilhos + 1, Pontos = Pontos + 1
+                            WHERE IDSala = %s and IDJogo_Sala = %s
+                        """, (room, id_jogo))
+                            
+        elif table == "sound":
+                    sound_value = float(data["Sound"])
+                    query = "INSERT INTO sound (IDJogo, Hour, Sound) VALUES (%s, %s, %s)"
+                    values = (id_jogo, data["Hour"], sound_value)
+                    cursor.execute(query, values)
+                    connection.commit()
+                    print(f"✅ Dados inseridos na tabela {table} com sucesso! from buffer FROM BUFFER")
+
+                    '''# Verificar limiares
+                    ruido_normal = 19.0
+                    tolerancia_maxima = 2.5'''
+                    limite_max = normal_noise + variation_level
+
+                    aviso_threshold = normal_noise + 0.75 * variation_level               # 20.875
+                    perigo_threshold = normal_noise + 0.90 * variation_level              # 21.25
+                    '''aviso_threshold = 19.25 #teste
+                    perigo_threshold =19.3 #teste'''
+
+                    alerta = None
+                    mensagem = None
+
+                    if sound_value >= perigo_threshold:
+                        alerta = "Perigo_Ruido"
+                        mensagem = f"⚠️ Som crítico: {sound_value:.2f} dB (≥95% do limite de {limite_max})"
+                    elif sound_value >= aviso_threshold:
+                        alerta = "Aviso_Ruido"
+                        mensagem = f"🔔 Som elevado: {sound_value:.2f} dB (≥90% do limite de {limite_max})"
+
+                    if alerta:
+                        cursor.execute("""
+                            SELECT TipoAlerta, HoraEscrita FROM mensagens
+                            WHERE IDJogo = %s
+                            ORDER BY Hora DESC LIMIT 1
+                        """, (id_jogo,))
+                        resultado = cursor.fetchone()
+
+                        permitir_insercao = False
+
+                        if not resultado:
+                            permitir_insercao = True
+                        else:
+                            ultimo_tipo, ultima_hora = resultado
+                            segundos_desde_ultimo = (datetime.now() - ultima_hora).total_seconds()
+
+                            if alerta == "Perigo_Ruido" and ultimo_tipo != "Perigo_Ruido":
+                                permitir_insercao = True
+                                #client.publish("pisid_mazeact", f"{{Type: CloseAllDoor, Player:9}}")
+                            elif segundos_desde_ultimo > 5:
+                                permitir_insercao = True
+                                #client.publish("pisid_mazeact", f"{{Type: OpenAllDoor, Player:9}}")
+
+                        if permitir_insercao: 
+                            cursor.execute("""
+                                INSERT INTO mensagens (Hora, Leitura, TipoAlerta, Msg, IDJogo)
+                                VALUES (%s, %s, %s, %s, %s)
+                            """, (data["Hour"], sound_value, alerta, mensagem, id_jogo))
+                            connection.commit()
+                            print(f"🚨 Alerta '{alerta}' registado na tabela mensagens! from buffer FROM BUFFER")
+                        else:
+                            print(f"⏱️ Alerta '{alerta}' ignorado (cooldown ativo ou repetido).")
+    except Exception as e:
+        print(f"❌ Erro ao inserir dados no MySQL: {e}")
         
 # ===== Inserir dados =====
 def insert_into_mysql(connection, table, data):
@@ -121,12 +203,12 @@ def insert_into_mysql(connection, table, data):
             if len(movement_buffer) > 0:
                 for i in range(len(movement_buffer)):
                     message = json.load(movement_buffer.pop(0))
-                    insert_into_mysql_from_buffer(connection, "movement", message)
+                    insert_into_mysql_from_buffer(connection, "movement", message, id_jogo)
 
             if len(sound_buffer) > 0:
                 for i in range(len(sound_buffer)):
                     message = json.load(sound_buffer.pop(0))
-                    insert_into_mysql_from_buffer(connection, "sound", message)
+                    insert_into_mysql_from_buffer(connection, "sound", message, id_jogo)
 
             if table == "movement":
                 print(data)
