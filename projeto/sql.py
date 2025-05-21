@@ -94,8 +94,6 @@ def insert_into_mysql_from_buffer(connection, table, data, id_jogo):
             connection.commit()
 
             if "gatilho" in data:
-                print("gatilho em data")
-                print(data["gatilho"])
                 for room in data["gatilho"]:
                     if room != 0:
                             cursor.execute("""
@@ -171,8 +169,6 @@ def insert_into_mysql_from_buffer(connection, table, data, id_jogo):
 def insert_into_mysql(connection, table, data):
     global movement_buffer
     global sound_buffer
-    
-    print(movement_buffer)
 
     if table == "movement":
         required_keys = ["Marsami", "RoomOrigin", "RoomDestiny", "Status"]
@@ -223,8 +219,6 @@ def insert_into_mysql(connection, table, data):
                 connection.commit()
 
                 if "gatilho" in data:
-                    print("gatilho em data")
-                    print(data["gatilho"])
                     for room in data["gatilho"]:
                         if room != 0:
                                 cursor.execute("""
