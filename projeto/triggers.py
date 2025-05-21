@@ -141,7 +141,10 @@ def get_score(player):
         if 'conn' in locals() and conn.is_connected():
             conn.close()
 
-    if __name__ == "__main__":
+client = mqtt.Client(clean_session=True) 
+client.connect("broker.emqx.io", 1883, keepalive=30)  # Ping a cada 30s
+
+if __name__ == "__main__":
         if len(sys.argv) < 3:
             print("❌ Argumentos insuficientes.")
             sys.exit(1)
@@ -170,8 +173,5 @@ def get_score(player):
         else:
             print("❌ Comando desconhecido.")
             sys.exit(1)
-
-client = mqtt.Client(clean_session=True) 
-client.connect("broker.emqx.io", 1883, keepalive=30)  # Ping a cada 30s
 
 print("✅ Mensagem enviada:", message)
