@@ -71,9 +71,6 @@ def get_current_game_id(connection):
         return None
     
 def insert_into_mysql_from_buffer(connection, table, data):
-    global client
-    client.mysql_connection = connect_to_mysql()
-
     if table == "movement":
         required_keys = ["Marsami", "RoomOrigin", "RoomDestiny", "Status"]
     elif table == "sound":
@@ -106,6 +103,7 @@ def insert_into_mysql(connection, table, data):
             return
         
     if not connection:
+        print("SEM CONEXAO SQL")
         if table == "movement":
             movement_buffer.append(json.dumps(data))
         elif table == "sound":
@@ -244,6 +242,9 @@ def on_message(client, userdata, msg):
                     insert_into_mysql(client.mysql_connection, "movement", message)
                 elif msg.topic == "pisid_mazesound_99":
                     insert_into_mysql(client.mysql_connection, "sound", message)
+            else: 
+                print("TRYING TO CONNECT TO SQL")
+                client.mysql_connection = connect_to_mysql()
     except json.JSONDecodeError:
         print("❌ Erro ao decodificar JSON")
 
