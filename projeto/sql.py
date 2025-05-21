@@ -71,6 +71,9 @@ def get_current_game_id(connection):
         return None
     
 def insert_into_mysql_from_buffer(connection, table, data):
+    global client
+    client.mysql_connection = connect_to_mysql()
+
     if table == "movement":
         required_keys = ["Marsami", "RoomOrigin", "RoomDestiny", "Status"]
     elif table == "sound":
