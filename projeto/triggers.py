@@ -11,27 +11,36 @@ message = None  # Variável global a ser usada para enviar
 def open_door(client, player, origin, destiny):
     print(f"Abrindo porta de {origin} para {destiny}")
     client.publish("pisid_mazeact", f"{{Type: OpenDoor, Player:{player}, RoomOrigin: {origin}, RoomDestiny: {destiny}}}")
+    print(json.dumps({"Abriu a porta": origin}))
+
     
 
 def close_door(client, player, origin, destiny):
     print(f"Fechando porta de {origin} para {destiny}")
     client.publish("pisid_mazeact", f"{{Type: CloseDoor, Player:{player}, RoomOrigin: {origin}, RoomDestiny: {destiny}}}")
+    print(json.dumps({"Fechou a porta": destiny }))
+
     
 
 def open_all_doors(client, player):
     print("Abrindo todas as portas")
     client.publish("pisid_mazeact", f"{{Type: OpenAllDoor, Player:{player}}}")
+    print(json.dumps({"Abriu todas as portas"}))
+
     
 
 def close_all_doors(client, player):
     print("Fechando todas as portas")
     client.publish("pisid_mazeact", f"{{Type: CloseAllDoor, Player:{player}}}")
+    print(json.dumps({"Fechou todas as portas"}))
+
     
 
 def score(client,player, room):
     print(f"Disparou na sala {room}")
     client.publish("pisid_mazeact", f"{{Type: Score, Player:{player}}}")
-    
+    print(json.dumps({"Disparou na sala": room}))
+
 
 def get_score(player):
     try:
@@ -107,16 +116,7 @@ def get_score(player):
             print("❌ Comando desconhecido.")
             sys.exit(1)
 
-        # Envia para o broker MQTT
-        mqtt.single(
-            topic="pisid_mazeact",
-            payload=str(message),
-            hostname="broker.emqx.io", 
-            port=1883
-        )
-
 client = mqtt.Client(clean_session=True) 
-client.subscribe("pisid_mazemov_9", qos=1)
 client.connect("broker.emqx.io", 1883, keepalive=30)  # Ping a cada 30s
 
 print("✅ Mensagem enviada:", message)
