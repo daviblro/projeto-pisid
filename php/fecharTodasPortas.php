@@ -1,5 +1,5 @@
 <?php
-$player = $_POST["username"];
+$player = $_POST["player"];
 
 $python = "python";
 $script = "/scripts/triggers.py";
