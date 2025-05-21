@@ -5,7 +5,7 @@ import sys
 import mysql.connector 
 from mysql.connector import Error
 import decimal
-
+    
 message = None  # Variável global a ser usada para enviar
 
 def open_door(client, player, origin, destiny):
