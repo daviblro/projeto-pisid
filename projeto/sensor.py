@@ -140,8 +140,8 @@ def fix_json_format(msg):
 
 def on_connect(client, userdata, flags, reason_code):
     print("MQTT conectado com código:", reason_code)
-    client.subscribe("pisid_mazemov_9", qos=1)
-    client.subscribe("pisid_mazesound_9", qos=1)
+    client.subscribe("pisid_mazemov_9", qos=2)
+    client.subscribe("pisid_mazesound_9", qos=2)
 
 def on_message(client, userdata, msg):
     try:
